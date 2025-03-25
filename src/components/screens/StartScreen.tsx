@@ -1,76 +1,52 @@
-import React, { useState } from 'react';
-import useScreenTransition from '../../hooks/useScreenTransition';
+import React from 'react';
+import { useDispatch } from 'react-redux';
+import { setCurrentScreen } from '../../state/slices/gameSlice';
 import '../../styles/StartScreen.css';
 
-const StartScreen: React.FC = () => {
-  const { transitionToScreen } = useScreenTransition();
-  const [showOptions, setShowOptions] = useState(false);
-  const [showCredits, setShowCredits] = useState(false);
+export const StartScreen: React.FC = () => {
+  const dispatch = useDispatch();
 
-  const handleStartGame = async () => {
-    await transitionToScreen('faction-select');
+  const handleStartGame = () => {
+    dispatch(setCurrentScreen('faction-select'));
   };
 
-  const handlePhysicsTest = async () => {
-    await transitionToScreen('physics-test');
+  const handlePhysicsTest = () => {
+    dispatch(setCurrentScreen('physics-test'));
+  };
+
+  const handleOptions = () => {
+    dispatch(setCurrentScreen('options'));
+  };
+
+  const handleCredits = () => {
+    dispatch(setCurrentScreen('credits'));
   };
 
   return (
     <div className="start-screen">
-      <div className="game-title">
-        <h1>TRANSFORMERS</h1>
-        <h2>BATTLE ARENA</h2>
+      <div className="logo">
+        <h1>Transformers</h1>
+        <h2>Battle Arena</h2>
       </div>
-      
-      <div className="menu-buttons">
-        <button className="start-button" onClick={handleStartGame}>
-          START GAME
+
+      <div className="menu">
+        <button className="menu-button primary" onClick={handleStartGame}>
+          Start Game
         </button>
-        <button 
-          className="options-button" 
-          onClick={() => setShowOptions(true)}
-        >
-          OPTIONS
+        <button className="menu-button" onClick={handlePhysicsTest}>
+          Physics Test
         </button>
-        <button 
-          className="credits-button" 
-          onClick={() => setShowCredits(true)}
-        >
-          CREDITS
+        <button className="menu-button" onClick={handleOptions}>
+          Options
         </button>
-        <button 
-          className="physics-test-button" 
-          onClick={handlePhysicsTest}
-        >
-          PHYSICS TEST
+        <button className="menu-button" onClick={handleCredits}>
+          Credits
         </button>
       </div>
 
-      {showOptions && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Options</h2>
-            {/* Options content will go here */}
-            <button onClick={() => setShowOptions(false)}>Close</button>
-          </div>
-        </div>
-      )}
-
-      {showCredits && (
-        <div className="modal">
-          <div className="modal-content">
-            <h2>Credits</h2>
-            {/* Credits content will go here */}
-            <button onClick={() => setShowCredits(false)}>Close</button>
-          </div>
-        </div>
-      )}
-
-      <div className="footer">
-        <p>A game for 7-10 year olds</p>
+      <div className="version">
+        <span>Version 0.1.0</span>
       </div>
     </div>
   );
-};
-
-export default StartScreen; 
+}; 

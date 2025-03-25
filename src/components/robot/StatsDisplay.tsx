@@ -1,50 +1,93 @@
 import React from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
-import { calculateTotalStats } from '../../game/entities/RobotParts';
+import { Robot } from '../../types/Robot';
 import '../../styles/StatsDisplay.css';
 
-interface StatBarProps {
-  label: string;
-  value: number;
-  maxValue?: number;
-  color?: string;
+interface RobotStats {
+  health: number;
+  energy: number;
+  strength: number;
+  defense: number;
+  speed: number;
 }
 
-const StatBar: React.FC<StatBarProps> = ({
-  label,
-  value,
-  maxValue = 100,
-  color = '#00f2ff'
-}) => (
-  <div className="stat-bar">
-    <span className="stat-label">{label}</span>
-    <div className="stat-bar-container">
-      <div
-        className="stat-value"
-        style={{
-          width: `${(value / maxValue) * 100}%`,
-          backgroundColor: color
-        }}
-      />
-      <span className="stat-number">{value}</span>
-    </div>
-  </div>
-);
+const calculateTotalStats = (robot: Robot | null): RobotStats => {
+  if (!robot) {
+    return {
+      health: 0,
+      energy: 0,
+      strength: 0,
+      defense: 0,
+      speed: 0
+    };
+  }
+
+  const totalStats: RobotStats = {
+    health: 0,
+    energy: 0,
+    strength: 0,
+    defense: 0,
+    speed: 0
+  };
+
+  // Sum up stats from all parts
+  Object.values(robot.parts).forEach(part => {
+    if (part) {
+      totalStats.health += part.stats.health;
+      totalStats.energy += part.stats.energy;
+      totalStats.strength += part.stats.strength;
+      totalStats.defense += part.stats.defense;
+      totalStats.speed += part.stats.speed;
+    }
+  });
+
+  return totalStats;
+};
 
 export const StatsDisplay: React.FC = () => {
-  const { robot } = useSelector((state: RootState) => state.player);
+  const robot = useSelector((state: RootState) => state.player.robot);
   const totalStats = calculateTotalStats(robot);
 
   return (
     <div className="stats-display">
-      <h3>Robot Stats</h3>
+      <h3>Total Stats</h3>
       <div className="stats-grid">
-        <StatBar label="Health" value={totalStats.health} color="#ff3d00" />
-        <StatBar label="Defense" value={totalStats.defense} color="#00e676" />
-        <StatBar label="Speed" value={totalStats.speed} color="#2196f3" />
-        <StatBar label="Strength" value={totalStats.strength} color="#9c27b0" />
-        <StatBar label="Energy" value={totalStats.energy} color="#ffc107" />
+        <div className="stat">
+          <label>Health</label>
+          <div className="stat-bar">
+            <div className="fill" style={{ width: `${totalStats.health / 4}%` }}></div>
+            <span className="value">{totalStats.health}</span>
+          </div>
+        </div>
+        <div className="stat">
+          <label>Energy</label>
+          <div className="stat-bar">
+            <div className="fill" style={{ width: `${totalStats.energy / 4}%` }}></div>
+            <span className="value">{totalStats.energy}</span>
+          </div>
+        </div>
+        <div className="stat">
+          <label>Strength</label>
+          <div className="stat-bar">
+            <div className="fill" style={{ width: `${totalStats.strength / 4}%` }}></div>
+            <span className="value">{totalStats.strength}</span>
+          </div>
+        </div>
+        <div className="stat">
+          <label>Defense</label>
+          <div className="stat-bar">
+            <div className="fill" style={{ width: `${totalStats.defense / 4}%` }}></div>
+            <span className="value">{totalStats.defense}</span>
+          </div>
+        </div>
+        <div className="stat">
+          <label>Speed</label>
+          <div className="stat-bar">
+            <div className="fill" style={{ width: `${totalStats.speed / 4}%` }}></div>
+            <span className="value">{totalStats.speed}</span>
+          </div>
+        </div>
       </div>
     </div>
   );

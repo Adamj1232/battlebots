@@ -1,92 +1,174 @@
-import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from '../../state/store';
-import { updateRobotPart } from '../../state/slices/playerSlice';
-import { SciFiButton } from '../common/SciFiButton';
-import { getAvailableParts, RobotPart } from '../../game/entities/RobotParts';
+import { updateRobotParts } from '../../state/slices/playerSlice';
+import { RobotPart } from '../../game/entities/RobotParts';
+import { Faction } from '../../types/Robot';
 import '../../styles/PartSelectionGrid.css';
 
-interface PartCardProps {
-  id: string;
-  name: string;
-  description: string;
-  rarity: string;
-  stats: {
-    health: number;
-    speed: number;
-    strength: number;
-    defense: number;
-    energy: number;
-  };
-  isSelected: boolean;
-  onSelect: () => void;
-}
+type PartType = 'head' | 'torso' | 'arms' | 'legs' | 'weapon';
 
-const PartCard: React.FC<PartCardProps> = ({
-  name,
-  description,
-  rarity,
-  stats,
-  isSelected,
-  onSelect,
-}) => (
-  <div className={`part-card ${isSelected ? 'selected' : ''}`} onClick={onSelect}>
-    <div className={`rarity-badge ${rarity}`}>{rarity}</div>
-    <h3>{name}</h3>
-    <p>{description}</p>
-    <div className="part-stats">
-      {Object.entries(stats).map(([stat, value]) => (
-        <div key={stat} className="stat-bar">
-          <span className="stat-label">{stat}</span>
-          <div className="stat-bar-container">
-            <div className="stat-value" style={{ width: `${(value / 100) * 100}%` }} />
-            <span className="stat-number">{value}</span>
-          </div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
+const mockParts: RobotPart[] = [
+  {
+    id: 'head1',
+    name: 'Basic Head',
+    type: 'head',
+    faction: 'autobot',
+    rarity: 'common',
+    modelPath: '/models/head1.glb',
+    previewImage: '/images/head1.png',
+    description: 'Standard issue head unit',
+    stats: {
+      health: 50,
+      energy: 40,
+      strength: 30,
+      defense: 45,
+      speed: 35
+    }
+  },
+  {
+    id: 'torso1',
+    name: 'Basic Torso',
+    type: 'torso',
+    faction: 'autobot',
+    rarity: 'common',
+    modelPath: '/models/torso1.glb',
+    previewImage: '/images/torso1.png',
+    description: 'Standard issue torso unit',
+    stats: {
+      health: 70,
+      energy: 50,
+      strength: 40,
+      defense: 60,
+      speed: 30
+    }
+  },
+  {
+    id: 'arms1',
+    name: 'Basic Arms',
+    type: 'arms',
+    faction: 'autobot',
+    rarity: 'common',
+    modelPath: '/models/arms1.glb',
+    previewImage: '/images/arms1.png',
+    description: 'Standard issue arm units',
+    stats: {
+      health: 40,
+      energy: 45,
+      strength: 55,
+      defense: 35,
+      speed: 50
+    }
+  },
+  {
+    id: 'legs1',
+    name: 'Basic Legs',
+    type: 'legs',
+    faction: 'autobot',
+    rarity: 'common',
+    modelPath: '/models/legs1.glb',
+    previewImage: '/images/legs1.png',
+    description: 'Standard issue leg units',
+    stats: {
+      health: 45,
+      energy: 35,
+      strength: 30,
+      defense: 40,
+      speed: 60
+    }
+  }
+];
 
 export const PartSelectionGrid: React.FC = () => {
   const dispatch = useDispatch();
-  const { selectedFaction } = useSelector((state: RootState) => state.game);
-  const { robot } = useSelector((state: RootState) => state.player);
-  const [selectedType, setSelectedType] = React.useState<'head' | 'torso' | 'arms' | 'legs'>('head');
-
-  const availableParts = React.useMemo(() => {
-    if (!selectedFaction) return [];
-    // Convert faction name to correct format
-    const faction = selectedFaction === 'autobots' ? 'autobot' : 'decepticon';
-    return getAvailableParts(selectedType, faction);
-  }, [selectedType, selectedFaction]);
+  const robot = useSelector((state: RootState) => state.player.robot);
+  const [selectedType, setSelectedType] = useState<PartType>('head');
 
   const handlePartSelect = (part: RobotPart) => {
-    dispatch(updateRobotPart({ type: part.type, part }));
+    if (!robot) return;
+    dispatch(updateRobotParts({ 
+      partType: part.type,
+      part: part
+    }));
   };
 
+  const filteredParts = mockParts.filter(part => part.type === selectedType);
+
   return (
-    <div className="part-selection">
-      <div className="part-type-buttons">
-        {(['head', 'torso', 'arms', 'legs'] as const).map((type) => (
-          <SciFiButton
-            key={type}
-            variant={selectedType === type ? 'primary' : 'outline'}
-            onClick={() => setSelectedType(type)}
-          >
-            {type.charAt(0).toUpperCase() + type.slice(1)}
-          </SciFiButton>
-        ))}
+    <div className="part-selection-grid">
+      <div className="part-type-selector">
+        <button 
+          className={`type-button ${selectedType === 'head' ? 'selected' : ''}`}
+          onClick={() => setSelectedType('head')}
+        >
+          Head
+        </button>
+        <button 
+          className={`type-button ${selectedType === 'torso' ? 'selected' : ''}`}
+          onClick={() => setSelectedType('torso')}
+        >
+          Torso
+        </button>
+        <button 
+          className={`type-button ${selectedType === 'arms' ? 'selected' : ''}`}
+          onClick={() => setSelectedType('arms')}
+        >
+          Arms
+        </button>
+        <button 
+          className={`type-button ${selectedType === 'legs' ? 'selected' : ''}`}
+          onClick={() => setSelectedType('legs')}
+        >
+          Legs
+        </button>
       </div>
 
       <div className="parts-grid">
-        {availableParts.map((part) => (
-          <PartCard
+        {filteredParts.map((part) => (
+          <div 
             key={part.id}
-            {...part}
-            isSelected={robot[selectedType].id === part.id}
-            onSelect={() => handlePartSelect(part)}
-          />
+            className={`part-card ${robot?.parts[part.type]?.id === part.id ? 'selected' : ''}`}
+            onClick={() => handlePartSelect(part)}
+          >
+            <h3>{part.name}</h3>
+            <div className="stats">
+              <div className="stat">
+                <label>Health</label>
+                <div className="stat-bar">
+                  <div className="fill" style={{ width: `${part.stats.health}%` }}></div>
+                  <span className="value">{part.stats.health}</span>
+                </div>
+              </div>
+              <div className="stat">
+                <label>Energy</label>
+                <div className="stat-bar">
+                  <div className="fill" style={{ width: `${part.stats.energy}%` }}></div>
+                  <span className="value">{part.stats.energy}</span>
+                </div>
+              </div>
+              <div className="stat">
+                <label>Strength</label>
+                <div className="stat-bar">
+                  <div className="fill" style={{ width: `${part.stats.strength}%` }}></div>
+                  <span className="value">{part.stats.strength}</span>
+                </div>
+              </div>
+              <div className="stat">
+                <label>Defense</label>
+                <div className="stat-bar">
+                  <div className="fill" style={{ width: `${part.stats.defense}%` }}></div>
+                  <span className="value">{part.stats.defense}</span>
+                </div>
+              </div>
+              <div className="stat">
+                <label>Speed</label>
+                <div className="stat-bar">
+                  <div className="fill" style={{ width: `${part.stats.speed}%` }}></div>
+                  <span className="value">{part.stats.speed}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         ))}
       </div>
     </div>

@@ -1,134 +1,118 @@
 import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { setCurrentScreen } from '../../state/slices/gameSlice';
 import { RootState } from '../../state/store';
-import { SciFiButton } from '../common/SciFiButton';
-import useScreenTransition from '../../hooks/useScreenTransition';
-import { PartSelectionGrid } from '../robot/PartSelectionGrid';
-import { StatsDisplay } from '../robot/StatsDisplay';
-import { ColorCustomizer } from '../robot/ColorCustomizer';
-import { TutorialOverlay } from '../tutorial/TutorialOverlay';
-import { saveRobot } from '../../utils/robotStorage';
-import { setPlayerName } from '../../state/slices/playerSlice';
 import '../../styles/RobotCustomizationScreen.css';
-
-const tutorialSteps = [
-  {
-    id: 'welcome',
-    title: 'Welcome to Robot Customization',
-    description: 'Let\'s customize your robot to make it unique and powerful!',
-    position: { x: 0, y: 0 }
-  },
-  {
-    id: 'body',
-    title: 'Choose Your Body',
-    description: 'Select a body type that matches your fighting style.',
-    position: { x: 0, y: 0 }
-  },
-  {
-    id: 'weapons',
-    title: 'Add Weapons',
-    description: 'Equip your robot with powerful weapons to defeat your opponents.',
-    position: { x: 0, y: 0 }
-  },
-  {
-    id: 'finish',
-    title: 'Ready to Battle!',
-    description: 'Your robot is ready for the arena. Let\'s start the battle!',
-    position: { x: 0, y: 0 }
-  }
-];
 
 export const RobotCustomizationScreen: React.FC = () => {
   const dispatch = useDispatch();
-  const { selectedFaction } = useSelector((state: RootState) => state.game);
-  const { robot } = useSelector((state: RootState) => state.player);
-  const { transitionToScreen } = useScreenTransition();
-  const [showTutorial, setShowTutorial] = useState(true);
-  const [robotName, setRobotName] = useState('');
+  const selectedFaction = useSelector((state: RootState) => state.game.selectedFaction);
+  const [selectedPart, setSelectedPart] = useState<string | null>(null);
+  const [robotColors, setRobotColors] = useState({
+    primary: '#ff0000',
+    secondary: '#0000ff',
+    accent: '#ffff00'
+  });
 
-  const handleNameSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (robotName.trim()) {
-      dispatch(setPlayerName(robotName.trim()));
-      setShowTutorial(false);
-    }
+  const handlePartSelect = (part: string) => {
+    setSelectedPart(part);
   };
 
-  const handleSaveAndContinue = async () => {
-    if (robotName) {
-      saveRobot(robot, robotName);
-      await transitionToScreen('city');
-    }
+  const handleColorChange = (colorType: 'primary' | 'secondary' | 'accent', color: string) => {
+    setRobotColors(prev => ({
+      ...prev,
+      [colorType]: color
+    }));
   };
 
-  const handleBack = async () => {
-    await transitionToScreen('faction-select');
+  const handleBack = () => {
+    dispatch(setCurrentScreen('faction-select'));
+  };
+
+  const handleComplete = () => {
+    dispatch(setCurrentScreen('battle'));
   };
 
   return (
     <div className="robot-customization-screen">
-      {showTutorial ? (
-        <div className="tutorial-overlay">
-          <h2>Welcome to the Robot Workshop!</h2>
-          <p>First, let's give your robot a name:</p>
-          <form onSubmit={handleNameSubmit}>
-            <input
-              type="text"
-              value={robotName}
-              onChange={(e) => setRobotName(e.target.value)}
-              placeholder="Enter robot name"
-              maxLength={20}
-              required
-            />
-            <button type="submit">Continue</button>
-          </form>
-        </div>
-      ) : (
-        <>
-          <h1>Customize Your {selectedFaction === 'autobots' ? 'Autobot' : 'Decepticon'}</h1>
+      <h1>Customize Your Robot</h1>
 
-          <div className="customization-layout">
-            <div className="preview-section">
-              <div className="robot-name-input">
-                <label htmlFor="robotName">Name Your Robot:</label>
+      <div className="customization-layout">
+        <div className="preview-section">
+          {/* 3D Robot Preview will go here */}
+        </div>
+
+        <div className="controls-section">
+          <div className="part-selection">
+            <h2>Robot Parts</h2>
+            <div className="parts-grid">
+              <button
+                className={`part-button ${selectedPart === 'head' ? 'selected' : ''}`}
+                onClick={() => handlePartSelect('head')}
+              >
+                Head
+              </button>
+              <button
+                className={`part-button ${selectedPart === 'torso' ? 'selected' : ''}`}
+                onClick={() => handlePartSelect('torso')}
+              >
+                Torso
+              </button>
+              <button
+                className={`part-button ${selectedPart === 'arms' ? 'selected' : ''}`}
+                onClick={() => handlePartSelect('arms')}
+              >
+                Arms
+              </button>
+              <button
+                className={`part-button ${selectedPart === 'legs' ? 'selected' : ''}`}
+                onClick={() => handlePartSelect('legs')}
+              >
+                Legs
+              </button>
+            </div>
+          </div>
+
+          <div className="color-selection">
+            <h2>Colors</h2>
+            <div className="color-pickers">
+              <div className="color-picker">
+                <label>Primary Color</label>
                 <input
-                  type="text"
-                  id="robotName"
-                  value={robotName}
-                  onChange={(e) => setRobotName(e.target.value)}
-                  placeholder="Enter robot name..."
+                  type="color"
+                  value={robotColors.primary}
+                  onChange={(e) => handleColorChange('primary', e.target.value)}
                 />
               </div>
-              <ColorCustomizer />
-            </div>
-
-            <div className="controls-section">
-              <PartSelectionGrid />
-              <StatsDisplay />
+              <div className="color-picker">
+                <label>Secondary Color</label>
+                <input
+                  type="color"
+                  value={robotColors.secondary}
+                  onChange={(e) => handleColorChange('secondary', e.target.value)}
+                />
+              </div>
+              <div className="color-picker">
+                <label>Accent Color</label>
+                <input
+                  type="color"
+                  value={robotColors.accent}
+                  onChange={(e) => handleColorChange('accent', e.target.value)}
+                />
+              </div>
             </div>
           </div>
 
-          <div className="button-container">
-            <SciFiButton variant="outline" onClick={handleBack}>
+          <div className="button-group">
+            <button className="back-button" onClick={handleBack}>
               Back
-            </SciFiButton>
-            <SciFiButton
-              variant="primary"
-              onClick={handleSaveAndContinue}
-              disabled={!robotName}
-            >
-              Save & Continue
-            </SciFiButton>
+            </button>
+            <button className="complete-button" onClick={handleComplete}>
+              Complete
+            </button>
           </div>
-        </>
-      )}
-
-      {showTutorial && (
-        <TutorialOverlay
-          steps={tutorialSteps}
-          onComplete={() => setShowTutorial(false)}
-        />
-      )}
+        </div>
+      </div>
     </div>
   );
 }; 

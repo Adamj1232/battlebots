@@ -85,19 +85,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 40px;
+  padding: 2rem;
   min-height: 100vh;
-  background: rgba(0, 0, 0, 0.9);
+  background: linear-gradient(to bottom, #1a1a2e, #16213e);
   color: #fff;
 }
 
 .robot-customization-screen h1 {
-  font-size: 36px;
-  margin-bottom: 40px;
+  font-size: 2.5rem;
+  margin-bottom: 2rem;
+  text-align: center;
   text-transform: uppercase;
-  letter-spacing: 3px;
-  color: #00f2ff;
-  text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+  letter-spacing: 2px;
+  color: #4a9eff;
+  text-shadow: 0 0 10px rgba(74, 158, 255, 0.5);
 }
 
 .customization-container {
@@ -118,26 +119,32 @@
 
 .customization-layout {
   display: grid;
-  grid-template-columns: 1fr 400px;
-  height: 100%;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1400px;
 }
 
 /* Preview Section */
 .preview-section {
   position: relative;
-  border-radius: var(--border-radius-lg);
+  border-radius: 1rem;
   overflow: hidden;
-  background: var(--background-light);
+  background: rgba(255, 255, 255, 0.05);
   box-shadow: var(--glow-primary);
+  padding: 2rem;
+  min-height: 600px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* Controls Section */
 .controls-section {
   display: flex;
   flex-direction: column;
-  gap: var(--spacing-md);
+  gap: 2rem;
   overflow-y: auto;
   padding-right: var(--spacing-md);
 }
@@ -168,11 +175,8 @@
 
 .parts-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: var(--spacing-md);
-  padding: var(--spacing-md);
-  max-height: 400px;
-  overflow-y: auto;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1rem;
 }
 
 /* Part Card */
@@ -446,5 +450,38 @@
 
   .parts-grid {
     max-height: 300px;
+  }
+}
+
+@media (max-width: 1024px) {
+  .customization-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .preview-section {
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 768px) {
+  .robot-customization-screen {
+    padding: 1rem;
+  }
+
+  .robot-customization-screen h1 {
+    font-size: 2rem;
+  }
+
+  .parts-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .button-group {
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  .back-button, .complete-button {
+    width: 100%;
   }
 } 

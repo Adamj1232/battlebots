@@ -1,87 +1,81 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { Faction } from '../../types/Robot';
+
+export interface AccessibilitySettings {
+  reducedMotion: boolean;
+  highContrast: boolean;
+  largeText: boolean;
+  soundEffects: boolean;
+  backgroundMusic: boolean;
+}
 
 export interface GameState {
   currentScreen: string;
-  engineInitialized: boolean;
-  showCanvas: boolean;
+  selectedFaction: Faction | null;
   isLoading: boolean;
-  loadingProgress: number;
-  gameStarted: boolean;
-  gamePaused: boolean;
-  currentLevel: number;
-  selectedFaction: 'autobots' | 'decepticons' | null;
   error: string | null;
-  accessibility: {
-    colorblindMode: boolean;
-    motionReduced: boolean;
-    screenReader: boolean;
-  };
+  loadingProgress: number;
+  accessibility: AccessibilitySettings;
 }
 
 const initialState: GameState = {
   currentScreen: 'start',
-  engineInitialized: false,
-  showCanvas: false,
-  isLoading: false,
-  loadingProgress: 0,
-  gameStarted: false,
-  gamePaused: false,
-  currentLevel: 1,
   selectedFaction: null,
+  isLoading: false,
   error: null,
+  loadingProgress: 0,
   accessibility: {
-    colorblindMode: false,
-    motionReduced: false,
-    screenReader: false,
+    reducedMotion: false,
+    highContrast: false,
+    largeText: false,
+    soundEffects: true,
+    backgroundMusic: true,
   },
 };
 
-const gameSlice = createSlice({
+export const gameSlice = createSlice({
   name: 'game',
   initialState,
   reducers: {
-    setGameState: (state, action: PayloadAction<Partial<GameState>>) => {
-      return { ...state, ...action.payload };
-    },
     setCurrentScreen: (state, action: PayloadAction<string>) => {
       state.currentScreen = action.payload;
-      state.showCanvas = ['robot-customization', 'city', 'battle', 'physics-test'].includes(action.payload);
+    },
+    setSelectedFaction: (state, action: PayloadAction<Faction>) => {
+      state.selectedFaction = action.payload;
+    },
+    setLoading: (state, action: PayloadAction<boolean>) => {
+      state.isLoading = action.payload;
+      if (!action.payload) {
+        state.loadingProgress = 0;
+      }
     },
     setLoadingProgress: (state, action: PayloadAction<number>) => {
       state.loadingProgress = action.payload;
     },
-    startGame: (state) => {
-      state.gameStarted = true;
-      state.gamePaused = false;
-    },
-    pauseGame: (state) => {
-      state.gamePaused = true;
-    },
-    resumeGame: (state) => {
-      state.gamePaused = false;
-    },
-    setSelectedFaction: (state, action: PayloadAction<'autobots' | 'decepticons'>) => {
-      state.selectedFaction = action.payload;
-    },
     setError: (state, action: PayloadAction<string | null>) => {
       state.error = action.payload;
     },
-    updateAccessibility: (state, action: PayloadAction<Partial<GameState['accessibility']>>) => {
+    updateAccessibility: (state, action: PayloadAction<Partial<AccessibilitySettings>>) => {
       state.accessibility = { ...state.accessibility, ...action.payload };
+    },
+    resetGame: (state) => {
+      state.currentScreen = 'start';
+      state.selectedFaction = null;
+      state.isLoading = false;
+      state.error = null;
+      state.loadingProgress = 0;
     },
   },
 });
 
 export const {
-  setGameState,
   setCurrentScreen,
-  setLoadingProgress,
-  startGame,
-  pauseGame,
-  resumeGame,
   setSelectedFaction,
+  setLoading,
+  setLoadingProgress,
   setError,
   updateAccessibility,
+  resetGame,
 } = gameSlice.actions;
 
 export default gameSlice.reducer; 

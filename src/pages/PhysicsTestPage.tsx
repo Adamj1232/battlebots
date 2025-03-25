@@ -1,7 +1,7 @@
 import React from 'react';
-import PhysicsTest from '../components/PhysicsTest';
+import { PhysicsTest } from '../components/game/PhysicsTest';
 
-const PhysicsTestPage: React.FC = () => {
+export const PhysicsTestPage: React.FC = () => {
   return (
     <div className="w-full h-screen bg-gray-900">
       <div className="container mx-auto px-4 py-8">
@@ -22,6 +22,4 @@ const PhysicsTestPage: React.FC = () => {
       </div>
     </div>
   );
-};
-
-export default PhysicsTestPage; 
+}; 

@@ -1,78 +1,52 @@
-import { World } from 'cannon-es';
-import { Vector3 } from 'three';
-import { PhysicsBody } from './PhysicsBody';
-import { PhysicsConfig } from './PhysicsConfig';
-
-export interface PhysicsWorldOptions {
-  gravity?: Vector3;
-  allowSleep?: boolean;
-  solver?: {
-    iterations?: number;
-    tolerance?: number;
-  };
-}
+import * as CANNON from 'cannon-es';
+import { PhysicsConfig } from './types';
 
 export class PhysicsEngine {
-  private world!: World;
-  private bodies: Map<string, PhysicsBody>;
-  private config: PhysicsConfig;
-  private isInitialized: boolean;
+  private world: CANNON.World;
 
-  constructor(options: PhysicsWorldOptions = {}) {
-    this.bodies = new Map();
-    this.isInitialized = false;
-    this.config = new PhysicsConfig(options);
+  constructor(config: PhysicsConfig) {
+    this.world = new CANNON.World();
+    this.world.gravity.set(config.gravity.x, config.gravity.y, config.gravity.z);
+
+    // Configure solver
+    (this.world.solver as any).iterations = config.solver.iterations;
+    (this.world.solver as any).tolerance = config.solver.tolerance;
+
+    // Create ground plane
+    const groundBody = new CANNON.Body({
+      mass: 0,
+      shape: new CANNON.Plane(),
+      material: new CANNON.Material()
+    });
+    groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+    this.world.addBody(groundBody);
   }
 
   public initialize(): void {
-    if (this.isInitialized) return;
-
-    this.world = new World({
-      gravity: this.config.gravity as any
-    });
-
-    this.isInitialized = true;
-  }
-
-  public addBody(id: string, body: PhysicsBody): void {
-    if (!this.isInitialized) {
-      throw new Error('PhysicsEngine must be initialized before adding bodies');
-    }
-
-    this.bodies.set(id, body);
-    this.world.addBody(body.getBody());
-  }
-
-  public removeBody(id: string): void {
-    const body = this.bodies.get(id);
-    if (body) {
-      this.world.removeBody(body.getBody());
-      this.bodies.delete(id);
-    }
+    // Initialize any additional physics settings
+    this.world.allowSleep = true;
   }
 
   public update(deltaTime: number): void {
-    if (!this.isInitialized) return;
-
     this.world.step(deltaTime);
-    
-    // Update all body positions and rotations
-    this.bodies.forEach((body) => {
-      body.update();
-    });
   }
 
-  public getBody(id: string): PhysicsBody | undefined {
-    return this.bodies.get(id);
+  public addBody(body: CANNON.Body): void {
+    this.world.addBody(body);
   }
 
-  public getWorld(): World {
-    return this.world;
+  public removeBody(body: CANNON.Body): void {
+    this.world.removeBody(body);
+  }
+
+  public rayTest(from: CANNON.Vec3, to: CANNON.Vec3, result: CANNON.RaycastResult): void {
+    this.world.rayTest(from, to, result);
   }
 
   public dispose(): void {
-    this.bodies.clear();
-    this.world = undefined as any;
-    this.isInitialized = false;
+    // Remove all bodies
+    while (this.world.bodies.length > 0) {
+      this.world.removeBody(this.world.bodies[0]);
+    }
   }
 } 

@@ -1,10 +1,15 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import Stats from 'three/examples/jsm/libs/stats.module';
-import InputManager from './InputManager';
+import { InputManager } from './InputManager';
 import { PhysicsEngine } from '../physics/PhysicsEngine';
 import { PhysicsBody } from '../physics/PhysicsBody';
 import { AccessibilitySettings } from '../types';
+import { CityEnvironment, CityZone } from '../world/CityEnvironment';
+import { CameraController } from '../camera/CameraController';
+import { RobotController } from '../entities/RobotController';
+import { PhysicsConfig } from '../physics/types';
+import * as CANNON from 'cannon-es';
 
 export interface UpdatableObject extends THREE.Object3D {
   update?: (deltaTime: number) => void;
@@ -28,14 +33,44 @@ export class GameEngine {
   private isPaused: boolean = false;
   private gameObjects: UpdatableObject[] = [];
   private physicsEngine: PhysicsEngine;
+  private cityEnvironment: CityEnvironment | null = null;
+  private cameraController: CameraController | null = null;
+  private robotController: RobotController | null = null;
+  private canvas: HTMLCanvasElement;
+  private isInitialized: boolean;
+  private lastTime: number;
+  private isRunning: boolean = false;
+  private world: CANNON.World;
 
-  constructor(canvas: HTMLCanvasElement, onError?: (error: Error) => void) {
-    this.errorCallback = onError || null;
+  constructor(canvas: HTMLCanvasElement, config?: PhysicsConfig) {
+    this.errorCallback = null;
     this.inputManager = new InputManager();
-    this.physicsEngine = new PhysicsEngine({
+    const physicsConfig = config || new PhysicsConfig({
       gravity: new THREE.Vector3(0, -9.81, 0),
+      solver: { iterations: 10, tolerance: 0.1 },
+      constraints: { iterations: 10, tolerance: 0.1 },
       allowSleep: true
     });
+    this.physicsEngine = new PhysicsEngine(physicsConfig);
+    this.canvas = canvas;
+    this.isInitialized = false;
+    this.lastTime = 0;
+    this.world = new CANNON.World();
+    this.world.gravity.set(0, -9.81, 0);
+
+    // Configure solver
+    (this.world.solver as any).iterations = 10;
+    (this.world.solver as any).tolerance = 0.1;
+
+    // Create ground plane
+    const groundBody = new CANNON.Body({
+      mass: 0,
+      shape: new CANNON.Plane(),
+      material: new CANNON.Material()
+    });
+    groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
+    this.world.addBody(groundBody);
+
     this.setupEngine(canvas);
   }
 
@@ -95,30 +130,43 @@ export class GameEngine {
       window.addEventListener('resize', this.handleResize);
       window.addEventListener('visibilitychange', this.handleVisibilityChange);
 
-      // Append stats to document if in development
-      if (process.env.NODE_ENV === 'development') {
-        document.body.appendChild(this.stats.dom);
-      }
+      // Initialize physics engine
+      this.physicsEngine.initialize();
+
+      // Initialize city environment
+      this.cityEnvironment = new CityEnvironment(this.scene, this.physicsEngine);
+      this.cityEnvironment.loadZone(CityZone.DOWNTOWN);
+
+      // Initialize camera controller
+      this.cameraController = new CameraController(
+        this.camera,
+        this.controls,
+        this.gameObjects[0] // Will be updated when player object is added
+      );
+
+      // Start animation loop
+      this.animate();
     } catch (error) {
       this.handleError(error as Error);
-      throw error;
     }
   }
 
   public async initialize(): Promise<void> {
-    try {
-      // Initialize physics engine
-      this.physicsEngine.initialize();
-      
-      // Start animation loop
-      this.animate();
-      
-      // Any additional initialization (loading assets, etc.)
-      return Promise.resolve();
-    } catch (error) {
-      this.handleError(error as Error);
-      return Promise.reject(error);
-    }
+    if (this.isInitialized) return;
+
+    // Initialize input manager
+    this.inputManager.initialize();
+
+    // Set up canvas
+    this.canvas.style.display = 'block';
+    this.canvas.style.position = 'fixed';
+    this.canvas.style.top = '0';
+    this.canvas.style.left = '0';
+    this.canvas.style.width = '100%';
+    this.canvas.style.height = '100%';
+    this.canvas.style.zIndex = '0';
+
+    this.isInitialized = true;
   }
 
   private handleError = (error: Error) => {
@@ -151,15 +199,31 @@ export class GameEngine {
     }
   };
 
-  private animate = () => {
-    try {
+  public animate(): void {
+    if (this.isRunning) return;
+    this.isRunning = true;
+
+    const animate = () => {
+      if (!this.isRunning) return;
+
       this.stats.begin();
 
       const currentTime = performance.now();
-      const deltaTime = Math.min((currentTime - this.frameTime) / 1000, 0.1); // Cap at 100ms to prevent huge jumps
+      const deltaTime = Math.min((currentTime - this.frameTime) / 1000, 0.1);
 
       // Update controls with delta time
       this.controls.update();
+
+      // Update camera controller
+      if (this.cameraController) {
+        this.cameraController.update(deltaTime);
+      }
+
+      // Update robot controller
+      if (this.robotController) {
+        const inputState = this.inputManager.getInputState();
+        this.robotController.update(deltaTime, inputState);
+      }
 
       // Update physics
       if (!this.isPaused) {
@@ -183,19 +247,23 @@ export class GameEngine {
       }
 
       this.stats.end();
-      this.animationFrameId = requestAnimationFrame(this.animate);
-    } catch (error) {
-      this.handleError(error as Error);
-    }
-  };
+      this.animationFrameId = requestAnimationFrame(animate);
+    };
 
-  private update(deltaTime: number) {
+    animate();
+  }
+
+  private update(deltaTime: number): void {
     // Update all game objects with proper delta time
     for (const object of this.gameObjects) {
       if (object.update) {
         object.update(deltaTime);
       }
     }
+
+    // Update physics
+    this.world.step(deltaTime);
+    this.physicsEngine.update(deltaTime);
   }
 
   public pause() {
@@ -215,59 +283,61 @@ export class GameEngine {
     this.isPaused = false;
   }
 
-  public dispose() {
-    try {
-      if (this.animationFrameId !== null) {
-        cancelAnimationFrame(this.animationFrameId);
-      }
-      
-      window.removeEventListener('resize', this.handleResize);
-      window.removeEventListener('visibilitychange', this.handleVisibilityChange);
-      
-      this.controls.dispose();
-      
-      // Dispose of all materials and geometries
-      this.scene.traverse((object) => {
-        if (object instanceof THREE.Mesh) {
-          object.geometry.dispose();
-          if (Array.isArray(object.material)) {
-            object.material.forEach(material => material.dispose());
-          } else {
-            object.material.dispose();
-          }
-        }
-      });
-      
-      this.renderer.dispose();
-      
-      // Dispose physics engine
-      this.physicsEngine.dispose();
-      
-      // Remove stats if in development
-      if (process.env.NODE_ENV === 'development' && this.stats.dom.parentNode) {
-        this.stats.dom.parentNode.removeChild(this.stats.dom);
-      }
-      
-      // Clear the scene
-      while(this.scene.children.length > 0) {
-        this.scene.remove(this.scene.children[0]);
-      }
+  public show(): void {
+    if (!this.isInitialized) return;
+    this.canvas.style.display = 'block';
+    this.resume();
+  }
 
-      this.inputManager.dispose();
-    } catch (error) {
-      this.handleError(error as Error);
+  public hide(): void {
+    if (!this.isInitialized) return;
+    this.canvas.style.display = 'none';
+    this.pause();
+  }
+
+  public dispose(): void {
+    if (!this.isInitialized) return;
+
+    this.inputManager.dispose();
+    if (this.cameraController) {
+      this.cameraController.dispose();
     }
-    this.isDisposed = true;
+    if (this.robotController) {
+      this.robotController.dispose();
+    }
+    this.canvas.style.display = 'none';
+    this.isInitialized = false;
+    this.isRunning = false;
+    this.scene.clear();
+    this.renderer.dispose();
+    this.physicsEngine.dispose();
+    this.cityEnvironment?.dispose();
+    this.controls.dispose();
+
+    // Remove all bodies
+    while (this.world.bodies.length > 0) {
+      this.world.removeBody(this.world.bodies[0]);
+    }
   }
 
   public updateAccessibilitySettings(settings: AccessibilitySettings): void {
-    this.inputManager.updateConfig({
-      accessibility: {
-        enableColorblindMode: settings.colorblindMode,
-        enableScreenReader: settings.screenReader,
-        enableMotionReduction: settings.motionReduced,
-      }
-    });
+    if (!this.isInitialized) return;
+
+    // Update input manager settings
+    if (settings.motionReduced) {
+      this.inputManager.dispose();
+    } else {
+      this.inputManager.initialize();
+    }
+
+    // Update canvas accessibility attributes
+    if (settings.screenReaderEnabled) {
+      this.canvas.setAttribute('role', 'application');
+      this.canvas.setAttribute('aria-label', 'Game viewport');
+    } else {
+      this.canvas.removeAttribute('role');
+      this.canvas.removeAttribute('aria-label');
+    }
   }
 
   public handleScreenTransition(screen: string): void {
@@ -286,7 +356,7 @@ export class GameEngine {
   }
 
   // Public methods for scene management
-  public addObject(object: UpdatableObject) {
+  public addObject(object: UpdatableObject): void {
     if (this.isDisposed) return;
     
     this.scene.add(object);
@@ -294,11 +364,16 @@ export class GameEngine {
     
     // If the object has a physics body, add it to the physics engine
     if (object.physicsBody) {
-      this.physicsEngine.addBody(object.uuid, object.physicsBody);
+      this.physicsEngine.addBody(object.physicsBody.getBody());
+    }
+
+    // If this is the first object and we have a camera controller, set it as the target
+    if (this.cameraController && this.gameObjects.length === 1) {
+      this.cameraController.setTarget(object);
     }
   }
 
-  public removeObject(object: UpdatableObject) {
+  public removeObject(object: UpdatableObject): void {
     if (this.isDisposed) return;
     
     const index = this.gameObjects.indexOf(object);
@@ -310,7 +385,7 @@ export class GameEngine {
     
     // If the object has a physics body, remove it from the physics engine
     if (object.physicsBody) {
-      this.physicsEngine.removeBody(object.uuid);
+      this.physicsEngine.removeBody(object.physicsBody.getBody());
     }
   }
 
@@ -332,6 +407,28 @@ export class GameEngine {
 
   public getPhysicsEngine() {
     return this.physicsEngine;
+  }
+
+  public setRobotController(robot: UpdatableObject, physicsBody: PhysicsBody): void {
+    if (!this.isInitialized) return;
+
+    this.robotController = new RobotController(robot, physicsBody, this.inputManager);
+  }
+
+  public getCityEnvironment(): CityEnvironment | null {
+    return this.cityEnvironment;
+  }
+
+  public addBody(body: CANNON.Body): void {
+    this.world.addBody(body);
+  }
+
+  public removeBody(body: CANNON.Body): void {
+    this.world.removeBody(body);
+  }
+
+  public rayTest(from: CANNON.Vec3, to: CANNON.Vec3, result: CANNON.RaycastResult): void {
+    this.world.rayTest(from, to, result);
   }
 }
 

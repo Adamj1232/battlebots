@@ -1,62 +1,55 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
-import { SciFiButton } from '../common/SciFiButton';
-import useScreenTransition from '../../hooks/useScreenTransition';
-import { setSelectedFaction } from '../../state/slices/gameSlice';
+import { setCurrentScreen, setSelectedFaction } from '../../state/slices/gameSlice';
+import { Faction } from '../../types/Robot';
 import '../../styles/FactionSelectScreen.css';
 
-const FactionSelectScreen: React.FC = () => {
+export const FactionSelectScreen: React.FC = () => {
   const dispatch = useDispatch();
-  const { transitionToScreen } = useScreenTransition();
 
-  const handleSelectFaction = async (faction: 'autobots' | 'decepticons') => {
+  const handleSelectFaction = (faction: Faction) => {
     dispatch(setSelectedFaction(faction));
-    await transitionToScreen('robot-customization');
+    dispatch(setCurrentScreen('robot-customization'));
   };
 
-  const handleBack = async () => {
-    await transitionToScreen('start');
+  const handleBack = () => {
+    dispatch(setCurrentScreen('start'));
   };
 
   return (
     <div className="faction-select-screen">
-      <h1>CHOOSE YOUR SIDE</h1>
-      
-      <div className="factions-container">
+      <h2>Choose Your Faction</h2>
+      <div className="faction-grid">
         <div 
-          className="faction-card autobot" 
-          onClick={() => handleSelectFaction('autobots')}
+          className="faction-card"
+          onClick={() => handleSelectFaction('autobot')}
         >
-          <div className="faction-logo autobot-logo"></div>
-          <h2>AUTOBOTS</h2>
-          <p>Brave heroes who protect Earth and fight for peace!</p>
-          <ul className="faction-traits">
-            <li>Strong Defenses</li>
-            <li>Healing Abilities</li>
-            <li>Team Bonuses</li>
+          <div className="faction-icon autobot" />
+          <h3>Autobots</h3>
+          <p>Defenders of peace and justice, the Autobots fight to protect all sentient beings.</p>
+          <ul>
+            <li>Balanced combat capabilities</li>
+            <li>Enhanced defensive systems</li>
+            <li>Superior transformation technology</li>
           </ul>
         </div>
-        
         <div 
-          className="faction-card decepticon" 
-          onClick={() => handleSelectFaction('decepticons')}
+          className="faction-card"
+          onClick={() => handleSelectFaction('decepticon')}
         >
-          <div className="faction-logo decepticon-logo"></div>
-          <h2>DECEPTICONS</h2>
-          <p>Powerful warriors seeking to conquer and rule!</p>
-          <ul className="faction-traits">
-            <li>Powerful Attacks</li>
-            <li>Stealth Abilities</li>
-            <li>Special Weapons</li>
+          <div className="faction-icon decepticon" />
+          <h3>Decepticons</h3>
+          <p>Masters of conquest and deception, the Decepticons seek ultimate power.</p>
+          <ul>
+            <li>Advanced weapons systems</li>
+            <li>Superior offensive capabilities</li>
+            <li>Ruthless combat tactics</li>
           </ul>
         </div>
       </div>
-      
-      <SciFiButton variant="outline" onClick={handleBack}>
-        BACK
-      </SciFiButton>
+      <button className="back-button" onClick={handleBack}>
+        Back to Menu
+      </button>
     </div>
   );
-};
-
-export default FactionSelectScreen; 
+}; 

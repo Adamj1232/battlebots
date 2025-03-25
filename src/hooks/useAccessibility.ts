@@ -1,20 +1,20 @@
-import { useSelector } from 'react-redux';
-import { RootState } from '../state/store';
+import { useState } from 'react';
+import { AccessibilitySettings } from '../game/types';
 
-export interface AccessibilitySettings {
-  colorblindMode: boolean;
-  motionReduced: boolean;
-  screenReader: boolean;
-}
+export const useAccessibility = () => {
+  const [settings, setSettings] = useState<AccessibilitySettings>({
+    colorblindMode: 'none',
+    motionReduced: false,
+    screenReaderEnabled: false,
+    highContrast: false,
+    fontSize: 'medium'
+  });
 
-const useAccessibility = () => {
-  const { accessibility } = useSelector((state: RootState) => state.game);
-
-  return {
-    colorblindMode: accessibility.colorblindMode,
-    motionReduced: accessibility.motionReduced,
-    screenReader: accessibility.screenReader
+  const updateSettings = (newSettings: Partial<AccessibilitySettings>) => {
+    setSettings(prev => ({ ...prev, ...newSettings }));
   };
+
+  return { settings, updateSettings };
 };
 
 export default useAccessibility; 

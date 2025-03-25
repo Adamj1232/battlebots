@@ -1,110 +1,168 @@
-import { Body, Box, Sphere, Cylinder, Vec3, Material } from 'cannon-es';
-import { Mesh, Vector3 } from 'three';
-
-export interface PhysicsBodyOptions {
-  mass?: number;
-  shape: 'box' | 'sphere' | 'cylinder';
-  dimensions?: Vector3;
-  radius?: number;
-  height?: number;
-  position?: Vector3;
-  material?: Material;
-}
+import * as THREE from 'three';
+import * as CANNON from 'cannon-es';
+import { PhysicsEngine } from './PhysicsEngine';
+import { PhysicsBodyConfig } from './types';
 
 export class PhysicsBody {
-  private body: Body;
-  private object3D: Mesh;
-  private position: Vector3;
+  private object: THREE.Object3D;
+  private engine: PhysicsEngine;
+  private body: CANNON.Body;
+  private enabled: boolean = true;
 
-  constructor(object3D: Mesh, options: PhysicsBodyOptions) {
-    if (!options.shape) {
-      throw new Error('Shape is required for PhysicsBody');
-    }
+  constructor(object: THREE.Object3D, engine: PhysicsEngine, config: PhysicsBodyConfig) {
+    this.object = object;
+    this.engine = engine;
 
-    this.object3D = object3D;
-    this.position = new Vector3();
-
-    // Create the physics body
-    const mass = options.mass ?? 0;
-    const position = options.position || new Vector3();
-    const material = options.material || new Material();
-
-    let shape;
-    switch (options.shape) {
+    // Create physics shape
+    let shape: CANNON.Shape;
+    switch (config.shape) {
       case 'box':
-        if (!options.dimensions) {
-          throw new Error('Box shape requires dimensions');
-        }
-        shape = new Box(new Vec3(
-          options.dimensions.x / 2,
-          options.dimensions.y / 2,
-          options.dimensions.z / 2
+        shape = new CANNON.Box(new CANNON.Vec3(
+          config.dimensions.x / 2,
+          config.dimensions.y / 2,
+          config.dimensions.z / 2
         ));
         break;
       case 'sphere':
-        if (options.radius === undefined) {
-          throw new Error('Sphere shape requires radius');
-        }
-        shape = new Sphere(options.radius);
+        shape = new CANNON.Sphere(config.dimensions.x / 2);
         break;
       case 'cylinder':
-        if (options.radius === undefined || options.height === undefined) {
-          throw new Error('Cylinder shape requires radius and height');
-        }
-        shape = new Cylinder(options.radius, options.radius, options.height / 2, 8);
+        shape = new CANNON.Cylinder(
+          config.dimensions.x / 2,
+          config.dimensions.x / 2,
+          config.dimensions.y,
+          16
+        );
         break;
       default:
-        throw new Error(`Unsupported shape: ${options.shape}`);
+        throw new Error(`Unsupported physics shape: ${config.shape}`);
     }
 
-    this.body = new Body({
-      mass,
-      position: new Vec3(position.x, position.y, position.z),
-      shape,
-      material
+    // Create physics body
+    this.body = new CANNON.Body({
+      mass: config.mass,
+      shape: shape,
+      position: new CANNON.Vec3(
+        object.position.x,
+        object.position.y,
+        object.position.z
+      ),
+      quaternion: new CANNON.Quaternion(
+        object.quaternion.x,
+        object.quaternion.y,
+        object.quaternion.z,
+        object.quaternion.w
+      )
     });
+
+    // Set physics properties
+    if (config.friction !== undefined) {
+      this.body.material = new CANNON.Material();
+      this.body.material.friction = config.friction;
+    }
+    if (config.restitution !== undefined) {
+      this.body.material = this.body.material || new CANNON.Material();
+      this.body.material.restitution = config.restitution;
+    }
+    if (config.linearDamping !== undefined) {
+      this.body.linearDamping = config.linearDamping;
+    }
+    if (config.angularDamping !== undefined) {
+      this.body.angularDamping = config.angularDamping;
+    }
+
+    // Add body to physics world
+    this.engine.addBody(this.body);
   }
 
-  public update(): void {
-    // Update the Three.js object position and rotation
-    this.object3D.position.copy(this.body.position as any);
-    this.object3D.quaternion.copy(this.body.quaternion as any);
-  }
-
-  public getBody(): Body {
+  public getBody(): CANNON.Body {
     return this.body;
   }
 
-  public setPosition(position: Vector3): void {
-    this.body.position.copy(position as any);
+  public update(): void {
+    if (!this.enabled) return;
+
+    // Update object position and rotation from physics body
+    this.object.position.copy(new THREE.Vector3(
+      this.body.position.x,
+      this.body.position.y,
+      this.body.position.z
+    ));
+    this.object.quaternion.copy(new THREE.Quaternion(
+      this.body.quaternion.x,
+      this.body.quaternion.y,
+      this.body.quaternion.z,
+      this.body.quaternion.w
+    ));
   }
 
-  public setRotation(rotation: Vector3): void {
-    this.body.quaternion.setFromEuler(rotation.x, rotation.y, rotation.z);
+  public applyForce(force: THREE.Vector3, worldPoint?: THREE.Vector3): void {
+    const cannonForce = new CANNON.Vec3(force.x, force.y, force.z);
+    if (worldPoint) {
+      const cannonPoint = new CANNON.Vec3(worldPoint.x, worldPoint.y, worldPoint.z);
+      this.body.applyForce(cannonForce, cannonPoint);
+    } else {
+      this.body.applyForce(cannonForce, this.body.position);
+    }
   }
 
-  public applyForce(force: Vector3, worldPoint?: Vector3): void {
-    this.body.applyForce(force as any, worldPoint as any);
+  public applyImpulse(impulse: THREE.Vector3, worldPoint?: THREE.Vector3): void {
+    const cannonImpulse = new CANNON.Vec3(impulse.x, impulse.y, impulse.z);
+    if (worldPoint) {
+      const cannonPoint = new CANNON.Vec3(worldPoint.x, worldPoint.y, worldPoint.z);
+      this.body.applyImpulse(cannonImpulse, cannonPoint);
+    } else {
+      this.body.applyImpulse(cannonImpulse, this.body.position);
+    }
   }
 
-  public applyImpulse(impulse: Vector3, worldPoint?: Vector3): void {
-    this.body.applyImpulse(impulse as any, worldPoint as any);
+  public setEnabled(enabled: boolean): void {
+    this.enabled = enabled;
+    this.body.type = enabled ? CANNON.Body.DYNAMIC : CANNON.Body.STATIC;
   }
 
-  public setVelocity(velocity: Vector3): void {
-    this.body.velocity.copy(velocity as any);
+  public updateSize(dimensions: THREE.Vector3): void {
+    // Create new shape with updated dimensions
+    let shape: CANNON.Shape;
+    switch (this.body.shapes[0].type) {
+      case CANNON.Shape.types.BOX:
+        shape = new CANNON.Box(new CANNON.Vec3(
+          dimensions.x / 2,
+          dimensions.y / 2,
+          dimensions.z / 2
+        ));
+        break;
+      case CANNON.Shape.types.SPHERE:
+        shape = new CANNON.Sphere(dimensions.x / 2);
+        break;
+      case CANNON.Shape.types.CYLINDER:
+        shape = new CANNON.Cylinder(
+          dimensions.x / 2,
+          dimensions.x / 2,
+          dimensions.y,
+          16
+        );
+        break;
+      default:
+        throw new Error('Unsupported physics shape type');
+    }
+
+    // Remove old shape and add new one
+    this.body.shapes = [shape];
+    this.body.updateBoundingRadius();
   }
 
-  public setAngularVelocity(angularVelocity: Vector3): void {
-    this.body.angularVelocity.copy(angularVelocity as any);
+  public rayTest(from: THREE.Vector3, to: THREE.Vector3): CANNON.RaycastResult | null {
+    const raycastResult = new CANNON.RaycastResult();
+    const rayFrom = new CANNON.Vec3(from.x, from.y, from.z);
+    const rayTo = new CANNON.Vec3(to.x, to.y, to.z);
+    
+    this.engine.rayTest(rayFrom, rayTo, raycastResult);
+    
+    return raycastResult.hasHit ? raycastResult : null;
   }
 
   public dispose(): void {
-    if (this.body) {
-      this.body = undefined as any;
-    }
-    if (this.object3D) {
-      this.object3D = undefined as any;
-    }
+    this.engine.removeBody(this.body);
   }
 } 

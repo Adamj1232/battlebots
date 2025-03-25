@@ -1,66 +1,81 @@
 .color-customizer {
-  padding: 20px;
-  background: rgba(0, 242, 255, 0.05);
-  border: 2px solid rgba(0, 242, 255, 0.3);
-  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: var(--border-radius-lg);
+  padding: var(--spacing-lg);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .color-customizer h3 {
-  margin-bottom: 20px;
-  font-size: 20px;
-  color: #00f2ff;
-  text-transform: uppercase;
-  letter-spacing: 2px;
+  font-size: 1.5rem;
+  margin-bottom: var(--spacing-md);
+  color: var(--primary-color);
 }
 
-.color-options {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
-  margin-bottom: 20px;
-}
-
-.color-picker {
+.color-inputs {
   display: flex;
   flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.color-input {
+  display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
 }
 
-.color-picker label {
-  font-size: 14px;
-  color: rgba(255, 255, 255, 0.8);
-  text-transform: uppercase;
+.color-input label {
+  font-size: 1rem;
+  color: var(--text-secondary);
 }
 
-.color-picker input[type="color"] {
+.color-input input[type="color"] {
   width: 60px;
-  height: 60px;
-  padding: 0;
+  height: 40px;
   border: none;
-  border-radius: 8px;
+  border-radius: var(--border-radius-sm);
   background: none;
   cursor: pointer;
 }
 
-.color-picker input[type="color"]::-webkit-color-swatch-wrapper {
+.color-input input[type="color"]::-webkit-color-swatch-wrapper {
   padding: 0;
 }
 
-.color-picker input[type="color"]::-webkit-color-swatch {
-  border: 2px solid rgba(0, 242, 255, 0.3);
-  border-radius: 8px;
+.color-input input[type="color"]::-webkit-color-swatch {
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: var(--border-radius-sm);
 }
 
 .color-preview {
   display: flex;
-  gap: 10px;
-  margin-top: 20px;
+  gap: var(--spacing-sm);
+  margin-top: var(--spacing-md);
 }
 
-.preview-swatch {
+.preview-box {
   width: 40px;
   height: 40px;
-  border-radius: 8px;
-  border: 2px solid rgba(0, 242, 255, 0.3);
+  border-radius: var(--border-radius-sm);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.preview-box:hover {
+  transform: scale(1.1);
+}
+
+@media (max-width: 768px) {
+  .color-customizer {
+    padding: var(--spacing-md);
+  }
+
+  .color-input {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .color-input input[type="color"] {
+    width: 100%;
+  }
 } 

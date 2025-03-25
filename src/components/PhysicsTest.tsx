@@ -4,6 +4,8 @@ import { OrbitControls } from '@react-three/drei';
 import { PhysicsEngine } from '../game/physics/PhysicsEngine';
 import { PhysicsBody } from '../game/physics/PhysicsBody';
 import { Mesh, Vector3 } from 'three';
+import { PhysicsConfig } from '../game/physics/types';
+import * as THREE from 'three';
 
 const Scene: React.FC = () => {
   const physicsEngine = useRef<PhysicsEngine | null>(null);
@@ -17,46 +19,64 @@ const Scene: React.FC = () => {
       return;
     }
 
+    // Create physics configuration
+    const config = new PhysicsConfig({
+      gravity: new THREE.Vector3(0, -9.81, 0),
+      solver: {
+        iterations: 10,
+        tolerance: 0.1
+      },
+      constraints: {
+        iterations: 10,
+        tolerance: 0.1
+      },
+      allowSleep: true
+    });
+
     // Initialize physics engine
-    physicsEngine.current = new PhysicsEngine();
+    physicsEngine.current = new PhysicsEngine(config);
     physicsEngine.current.initialize();
 
     // Add ground plane
-    const groundBody = new PhysicsBody(groundRef.current, {
+    const groundBody = new PhysicsBody(groundRef.current, physicsEngine.current, {
+      mass: 0,
       shape: 'box',
-      dimensions: new Vector3(20, 1, 20),
-      mass: 0
+      dimensions: new THREE.Vector3(100, 1, 100),
+      friction: 0.5,
+      restitution: 0.2
     });
-    physicsEngine.current.addBody('ground', groundBody);
 
     // Add falling objects
-    const boxBody = new PhysicsBody(boxRef.current, {
+    const boxBody = new PhysicsBody(boxRef.current, physicsEngine.current, {
+      mass: 1,
       shape: 'box',
-      dimensions: new Vector3(1, 1, 1),
-      mass: 1,
-      position: new Vector3(0, 5, 0)
+      dimensions: new THREE.Vector3(1, 1, 1),
+      friction: 0.5,
+      restitution: 0.2
     });
-    physicsEngine.current.addBody('box', boxBody);
 
-    const sphereBody = new PhysicsBody(sphereRef.current, {
+    const sphereBody = new PhysicsBody(sphereRef.current, physicsEngine.current, {
+      mass: 1,
       shape: 'sphere',
-      radius: 0.5,
-      mass: 1,
-      position: new Vector3(2, 5, 0)
+      dimensions: new THREE.Vector3(0.5, 0.5, 0.5),
+      friction: 0.5,
+      restitution: 0.2
     });
-    physicsEngine.current.addBody('sphere', sphereBody);
 
-    const cylinderBody = new PhysicsBody(cylinderRef.current, {
-      shape: 'cylinder',
-      radius: 0.5,
-      height: 2,
+    const cylinderBody = new PhysicsBody(cylinderRef.current, physicsEngine.current, {
       mass: 1,
-      position: new Vector3(-2, 5, 0)
+      shape: 'cylinder',
+      dimensions: new THREE.Vector3(0.5, 2, 0.5),
+      friction: 0.5,
+      restitution: 0.2
     });
-    physicsEngine.current.addBody('cylinder', cylinderBody);
 
     return () => {
       if (physicsEngine.current) {
+        groundBody.dispose();
+        boxBody.dispose();
+        sphereBody.dispose();
+        cylinderBody.dispose();
         physicsEngine.current.dispose();
       }
     };
@@ -80,7 +100,7 @@ const Scene: React.FC = () => {
         castShadow
         receiveShadow
       >
-        <boxGeometry args={[20, 1, 20]} />
+        <boxGeometry args={[100, 1, 100]} />
         <meshStandardMaterial color="#808080" />
       </mesh>
 
@@ -122,9 +142,13 @@ const Scene: React.FC = () => {
   );
 };
 
-const PhysicsTest: React.FC = () => {
+export const PhysicsTest: React.FC = () => {
   return (
-    <div style={{ width: '100%', height: '100vh' }}>
+    <div className="w-full h-full">
+      <div className="absolute top-4 left-4 bg-black bg-opacity-50 text-white p-4 rounded">
+        <h2 className="text-xl font-bold mb-2">Physics Test</h2>
+        <p>Testing physics engine functionality</p>
+      </div>
       <Canvas camera={{ position: [0, 5, 10], fov: 75 }}>
         <Scene />
       </Canvas>
