@@ -14,13 +14,20 @@
     "physics_engine": "@react-three/cannon for performance-optimized physics",
     "state_management": "Redux for global state, React context for UI states",
     "asset_loading": "Progressive loading with preloaded essential assets",
-    "world_structure": "Zone-based city environment with dynamic loading"
+    "world_structure": "Zone-based city environment with dynamic loading",
+    "battle_system": "Turn-based combat with real-time elements",
+    "special_abilities": "Cooldown-based system with faction specializations",
+    "enemy_ai": "Behavior tree implementation with difficulty scaling"
   },
   "priorities": [
     "Physics stability and performance",
     "Child-friendly controls and feedback",
     "Visual appeal with performant rendering",
     "Memory management for large environments",
-    "Consistent frame rates during physics interactions"
+    "Consistent frame rates during physics interactions",
+    "Clear visual feedback for all actions",
+    "Balanced difficulty appropriate for ages 7-10",
+    "Engaging special abilities and transformations",
+    "Performant effects even during intense battles"
   ]
 }
