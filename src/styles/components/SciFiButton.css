@@ -1,0 +1,188 @@
+.sci-fi-button {
+  position: relative;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--background-light);
+  color: var(--text-primary);
+  border: 1px solid var(--primary);
+  border-radius: var(--border-radius-sm);
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  font-weight: var(--font-weight-medium);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  overflow: hidden;
+  user-select: none;
+}
+
+/* Hover effect */
+.sci-fi-button:hover {
+  background: var(--background-lighter);
+  box-shadow: var(--glow-primary);
+  transform: translateY(-1px);
+}
+
+/* Active state */
+.sci-fi-button:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* Disabled state */
+.sci-fi-button:disabled {
+  background: var(--background-dark);
+  border-color: var(--text-disabled);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* Primary variant */
+.sci-fi-button.primary {
+  background: var(--gradient-primary);
+  border: none;
+}
+
+.sci-fi-button.primary:hover {
+  filter: brightness(1.2);
+}
+
+/* Accent variant */
+.sci-fi-button.accent {
+  background: var(--gradient-accent);
+  border: none;
+}
+
+.sci-fi-button.accent:hover {
+  filter: brightness(1.2);
+}
+
+/* Size variants */
+.sci-fi-button.small {
+  padding: var(--spacing-xs) var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.sci-fi-button.large {
+  padding: var(--spacing-md) var(--spacing-lg);
+  font-size: var(--font-size-lg);
+}
+
+/* Icon support */
+.sci-fi-button .icon {
+  margin-right: var(--spacing-sm);
+  vertical-align: middle;
+}
+
+/* Loading state */
+.sci-fi-button.loading {
+  cursor: wait;
+  opacity: 0.8;
+}
+
+.sci-fi-button.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--primary-light);
+  animation: loading 1.5s infinite linear;
+}
+
+@keyframes loading {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Glowing border effect */
+.sci-fi-button.glow {
+  animation: borderGlow 2s infinite;
+}
+
+@keyframes borderGlow {
+  0% {
+    box-shadow: 0 0 5px var(--primary),
+                0 0 10px var(--primary),
+                0 0 15px var(--primary-dark);
+  }
+  50% {
+    box-shadow: 0 0 10px var(--primary),
+                0 0 20px var(--primary),
+                0 0 30px var(--primary-dark);
+  }
+  100% {
+    box-shadow: 0 0 5px var(--primary),
+                0 0 10px var(--primary),
+                0 0 15px var(--primary-dark);
+  }
+}
+
+/* Faction-specific variants */
+.sci-fi-button.autobot {
+  background: linear-gradient(135deg, var(--autobot-primary), var(--autobot-secondary));
+  border: none;
+}
+
+.sci-fi-button.decepticon {
+  background: linear-gradient(135deg, var(--decepticon-primary), var(--decepticon-secondary));
+  border: none;
+}
+
+/* Full width variant */
+.sci-fi-button.full-width {
+  width: 100%;
+  display: block;
+}
+
+/* Group buttons */
+.sci-fi-button-group {
+  display: inline-flex;
+}
+
+.sci-fi-button-group .sci-fi-button {
+  border-radius: 0;
+}
+
+.sci-fi-button-group .sci-fi-button:first-child {
+  border-top-left-radius: var(--border-radius-sm);
+  border-bottom-left-radius: var(--border-radius-sm);
+}
+
+.sci-fi-button-group .sci-fi-button:last-child {
+  border-top-right-radius: var(--border-radius-sm);
+  border-bottom-right-radius: var(--border-radius-sm);
+}
+
+/* Outline variant */
+.sci-fi-button.outline {
+  background: transparent;
+  border: 1px solid var(--primary);
+}
+
+.sci-fi-button.outline:hover {
+  background: rgba(0, 240, 255, 0.1);
+}
+
+/* Pulse effect */
+.sci-fi-button.pulse {
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+  100% {
+    transform: scale(1);
+  }
+} 

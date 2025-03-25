@@ -1,0 +1,172 @@
+:root {
+  /* Core Colors */
+  --primary: #00f2ff;
+  --primary-glow: rgba(0, 242, 255, 0.5);
+  --secondary: #ff3d00;
+  --secondary-glow: rgba(255, 61, 0, 0.5);
+  --accent: #ffeb3b;
+  --accent-glow: rgba(255, 235, 59, 0.5);
+
+  /* UI Colors */
+  --background-dark: #0a0b1e;
+  --background-light: #1a1b3d;
+  --surface: rgba(26, 27, 61, 0.8);
+  --surface-hover: rgba(26, 27, 61, 0.95);
+  --border: rgba(0, 242, 255, 0.3);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.7);
+  --text-disabled: rgba(255, 255, 255, 0.3);
+
+  /* Faction Colors */
+  --autobot-primary: #ff3d00;
+  --autobot-secondary: #ff9100;
+  --decepticon-primary: #7c4dff;
+  --decepticon-secondary: #2196f3;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, var(--primary) 0%, #0288d1 100%);
+  --gradient-autobot: linear-gradient(135deg, var(--autobot-primary) 0%, var(--autobot-secondary) 100%);
+  --gradient-decepticon: linear-gradient(135deg, var(--decepticon-primary) 0%, var(--decepticon-secondary) 100%);
+  --gradient-surface: linear-gradient(180deg, var(--background-light) 0%, var(--background-dark) 100%);
+
+  /* Effects */
+  --glow-primary: 0 0 20px var(--primary-glow);
+  --glow-secondary: 0 0 20px var(--secondary-glow);
+  --glow-accent: 0 0 20px var(--accent-glow);
+
+  /* Animations */
+  --transition-fast: 0.2s ease-out;
+  --transition-normal: 0.3s ease-out;
+  --transition-slow: 0.5s ease-out;
+
+  /* Layout */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 16px;
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+
+  /* Typography */
+  --font-family: 'Orbitron', sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.25rem;
+  --font-size-xl: 1.5rem;
+  --font-size-xxl: 2rem;
+  --font-size-huge: 3rem;
+}
+
+/* Common Components */
+.sci-fi-panel {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius-md);
+  padding: var(--spacing-md);
+  box-shadow: var(--glow-primary);
+  backdrop-filter: blur(10px);
+}
+
+.sci-fi-button {
+  background: transparent;
+  border: 2px solid var(--primary);
+  border-radius: var(--border-radius-sm);
+  color: var(--primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  position: relative;
+  overflow: hidden;
+}
+
+.sci-fi-button::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: var(--gradient-primary);
+  opacity: 0.5;
+  transition: transform var(--transition-normal);
+  z-index: -1;
+}
+
+.sci-fi-button:hover {
+  color: var(--text-primary);
+  border-color: transparent;
+  box-shadow: var(--glow-primary);
+}
+
+.sci-fi-button:hover::before {
+  transform: translateX(100%);
+}
+
+.sci-fi-title {
+  color: var(--text-primary);
+  font-family: var(--font-family);
+  font-size: var(--font-size-huge);
+  text-transform: uppercase;
+  letter-spacing: 4px;
+  text-shadow: var(--glow-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.sci-fi-text {
+  color: var(--text-secondary);
+  font-family: var(--font-family);
+  font-size: var(--font-size-md);
+  line-height: 1.6;
+}
+
+/* Animations */
+@keyframes glow-pulse {
+  0% { opacity: 0.5; filter: brightness(0.8); }
+  50% { opacity: 1; filter: brightness(1.2); }
+  100% { opacity: 0.5; filter: brightness(0.8); }
+}
+
+@keyframes border-flow {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 100% 0%; }
+}
+
+@keyframes hover-rise {
+  0% { transform: translateY(0); }
+  100% { transform: translateY(-5px); }
+}
+
+/* Utility Classes */
+.glow-text {
+  text-shadow: var(--glow-primary);
+}
+
+.glow-border {
+  border: 1px solid var(--primary);
+  box-shadow: var(--glow-primary);
+}
+
+.gradient-text {
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.animate-glow {
+  animation: glow-pulse 2s infinite;
+}
+
+.animate-hover {
+  transition: transform var(--transition-normal);
+}
+
+.animate-hover:hover {
+  animation: hover-rise 0.3s forwards;
+} 

@@ -1,0 +1,26 @@
+{
+  "project": {
+    "name": "Transformers Battle Arena",
+    "description": "A browser-based 3D game where players build and battle robots",
+    "tech_stack": ["JavaScript", "React", "Three.js", "Redux", "@react-three/cannon", "HTML5", "CSS3"]
+  },
+  "code_conventions": {
+    "indentation": 2,
+    "comments": "JSDoc style for functions, inline for complex logic",
+    "naming": "camelCase for variables/functions, PascalCase for classes/components"
+  },
+  "architecture": {
+    "game_engine": "Component-based architecture with Three.js core",
+    "physics_engine": "@react-three/cannon for performance-optimized physics",
+    "state_management": "Redux for global state, React context for UI states",
+    "asset_loading": "Progressive loading with preloaded essential assets",
+    "world_structure": "Zone-based city environment with dynamic loading"
+  },
+  "priorities": [
+    "Physics stability and performance",
+    "Child-friendly controls and feedback",
+    "Visual appeal with performant rendering",
+    "Memory management for large environments",
+    "Consistent frame rates during physics interactions"
+  ]
+}

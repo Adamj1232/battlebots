@@ -1,0 +1,95 @@
+:root {
+  /* Colors */
+  --primary: #00f0ff;
+  --primary-dark: #0099cc;
+  --primary-light: #80f7ff;
+  --accent: #ff3d00;
+  --accent-dark: #cc3000;
+  --accent-light: #ff7a4d;
+  
+  --background-dark: #0a0b1e;
+  --background-light: #1a1b2e;
+  --background-lighter: #2a2b3e;
+  
+  --text-primary: #ffffff;
+  --text-secondary: #b0b0c0;
+  --text-disabled: #606070;
+  
+  --border: rgba(255, 255, 255, 0.1);
+  --border-active: rgba(255, 255, 255, 0.2);
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  --gradient-accent: linear-gradient(135deg, var(--accent) 0%, var(--accent-dark) 100%);
+  --gradient-background: linear-gradient(135deg, var(--background-dark) 0%, var(--background-light) 100%);
+  
+  /* Shadows and Glows */
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.4);
+  
+  --glow-primary: 0 0 20px rgba(0, 240, 255, 0.3);
+  --glow-accent: 0 0 20px rgba(255, 61, 0, 0.3);
+  
+  /* Spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+  --spacing-xxl: 48px;
+  
+  /* Typography */
+  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.25rem;
+  --font-size-xxl: 1.5rem;
+  --font-size-display: 2rem;
+  
+  --font-weight-normal: 400;
+  --font-weight-medium: 500;
+  --font-weight-bold: 700;
+  
+  /* Border Radius */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  --border-radius-xl: 16px;
+  --border-radius-full: 9999px;
+  
+  /* Transitions */
+  --transition-fast: 150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow: 350ms ease;
+  
+  /* Z-index */
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+  
+  /* Game-specific */
+  --autobot-primary: #ff0000;
+  --autobot-secondary: #c41e3a;
+  --decepticon-primary: #800080;
+  --decepticon-secondary: #4b0082;
+  
+  /* Stats Colors */
+  --stat-attack: #ff4d4d;
+  --stat-defense: #4d94ff;
+  --stat-speed: #66ff66;
+  --stat-special: #ffcc00;
+  
+  /* Rarity Colors */
+  --rarity-common: #b0bec5;
+  --rarity-rare: #2196f3;
+  --rarity-epic: #9c27b0;
+  --rarity-legendary: #ffc107;
+} 

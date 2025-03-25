@@ -1,0 +1,87 @@
+.sci-fi-button {
+  position: relative;
+  padding: 12px 24px;
+  border: none;
+  background: transparent;
+  color: #fff;
+  font-family: 'Arial', sans-serif;
+  font-size: 16px;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.sci-fi-button__content {
+  position: relative;
+  z-index: 1;
+}
+
+.sci-fi-button__border {
+  position: absolute;
+  inset: 0;
+  border: 2px solid #00f2ff;
+  clip-path: polygon(0 10px, 10px 0, calc(100% - 10px) 0, 100% 10px, 100% calc(100% - 10px), calc(100% - 10px) 100%, 10px 100%, 0 calc(100% - 10px));
+}
+
+.sci-fi-button__glow {
+  position: absolute;
+  inset: 0;
+  background: #00f2ff;
+  filter: blur(15px);
+  opacity: 0.5;
+  z-index: -1;
+}
+
+/* Variants */
+.sci-fi-button--primary {
+  background: rgba(0, 242, 255, 0.1);
+}
+
+.sci-fi-button--outline {
+  background: transparent;
+}
+
+.sci-fi-button--accent {
+  background: rgba(255, 61, 0, 0.1);
+}
+
+.sci-fi-button--accent .sci-fi-button__border {
+  border-color: #ff3d00;
+}
+
+.sci-fi-button--accent .sci-fi-button__glow {
+  background: #ff3d00;
+}
+
+/* Sizes */
+.sci-fi-button--small {
+  padding: 8px 16px;
+  font-size: 14px;
+}
+
+.sci-fi-button--large {
+  padding: 16px 32px;
+  font-size: 18px;
+}
+
+/* Hover effects */
+.sci-fi-button:hover {
+  transform: translateY(-2px);
+}
+
+.sci-fi-button:hover .sci-fi-button__glow {
+  opacity: 0.7;
+}
+
+/* Active state */
+.sci-fi-button:active {
+  transform: translateY(1px);
+}
+
+/* Disabled state */
+.sci-fi-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+} 

@@ -1,0 +1,180 @@
+.faction-select-screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 40px;
+  min-height: 100vh;
+  background: rgba(0, 0, 0, 0.9);
+  color: #fff;
+}
+
+.faction-select-screen h1 {
+  font-size: 36px;
+  margin-bottom: 40px;
+  text-transform: uppercase;
+  letter-spacing: 3px;
+  color: #00f2ff;
+  text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
+}
+
+.factions-container {
+  display: flex;
+  gap: 40px;
+  margin-bottom: 40px;
+}
+
+.faction-card {
+  width: 300px;
+  padding: 30px;
+  background: rgba(0, 242, 255, 0.1);
+  border: 2px solid #00f2ff;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.faction-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 0 20px rgba(0, 242, 255, 0.3);
+}
+
+.faction-card h2 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  text-align: center;
+  color: #00f2ff;
+}
+
+.faction-description {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.faction-description p {
+  margin-bottom: 15px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.faction-description ul {
+  list-style: none;
+  padding: 0;
+}
+
+.faction-description li {
+  margin: 10px 0;
+  padding-left: 20px;
+  position: relative;
+}
+
+.faction-description li::before {
+  content: '►';
+  position: absolute;
+  left: 0;
+  color: #00f2ff;
+  font-size: 12px;
+}
+
+.faction-logo {
+  width: 120px;
+  height: 120px;
+  margin-bottom: 1.5rem;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.autobot-logo {
+  /* Temporary SVG placeholder for Autobot logo */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%234CAF50' d='M50 5L20 35h20v30L50 75l10-10V35h20L50 5z'/%3E%3C/svg%3E");
+  filter: drop-shadow(0 0 10px rgba(0, 150, 255, 0.5));
+}
+
+.decepticon-logo {
+  /* Temporary SVG placeholder for Decepticon logo */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath fill='%23f44336' d='M50 5L20 35l30 30 30-30L50 5zM35 45v30l15 15 15-15V45L50 60 35 45z'/%3E%3C/svg%3E");
+  filter: drop-shadow(0 0 10px rgba(255, 0, 0, 0.5));
+}
+
+.faction-preview {
+  width: 100%;
+  height: 200px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  margin-top: auto;
+  opacity: 0.8;
+}
+
+.autobot-preview {
+  /* Temporary gradient placeholder for Autobot preview */
+  background: linear-gradient(45deg, #4CAF50 0%, #2196F3 100%);
+  border-radius: 10px;
+}
+
+.decepticon-preview {
+  /* Temporary gradient placeholder for Decepticon preview */
+  background: linear-gradient(45deg, #f44336 0%, #9C27B0 100%);
+  border-radius: 10px;
+}
+
+.autobot {
+  border: 2px solid #4CAF50;
+  box-shadow: 0 0 20px rgba(76, 175, 80, 0.3);
+}
+
+.autobot h2 {
+  color: #4CAF50;
+  text-shadow: 0 0 10px rgba(76, 175, 80, 0.5);
+}
+
+.decepticon {
+  border: 2px solid #f44336;
+  box-shadow: 0 0 20px rgba(244, 67, 54, 0.3);
+}
+
+.decepticon h2 {
+  color: #f44336;
+  text-shadow: 0 0 10px rgba(244, 67, 54, 0.5);
+}
+
+.back-button {
+  position: absolute;
+  bottom: 2rem;
+  padding: 1rem 2rem;
+  font-size: 1.2rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+} 
