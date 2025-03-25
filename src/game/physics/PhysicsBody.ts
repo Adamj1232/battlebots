@@ -162,7 +162,13 @@ export class PhysicsBody {
     return raycastResult.hasHit ? raycastResult : null;
   }
 
+  public getEngine(): PhysicsEngine {
+    return this.engine;
+  }
+
   public dispose(): void {
-    this.engine.removeBody(this.body);
+    if (this.body) {
+      this.engine.removeBody(this.body);
+    }
   }
 } 

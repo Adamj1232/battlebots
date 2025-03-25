@@ -1,6 +1,7 @@
 import React from 'react';
 import { useDispatch } from 'react-redux';
 import { setCurrentScreen } from '../../state/slices/gameSlice';
+import { PhysicsTest } from '../game/PhysicsTest';
 import '../../styles/PhysicsTestPage.css';
 
 export const PhysicsTestPage: React.FC = () => {
@@ -21,18 +22,28 @@ export const PhysicsTestPage: React.FC = () => {
 
       <div className="test-area">
         <div className="test-canvas">
-          {/* Physics test canvas will be added here */}
+          <PhysicsTest />
         </div>
 
         <div className="test-panel">
           <div className="test-options">
             <h3>Test Options</h3>
-            {/* Test options will be added here */}
+            <p>Use mouse to control camera:</p>
+            <ul>
+              <li>Left click + drag to rotate</li>
+              <li>Right click + drag to pan</li>
+              <li>Scroll to zoom</li>
+            </ul>
           </div>
 
           <div className="test-results">
-            <h3>Test Results</h3>
-            {/* Test results will be displayed here */}
+            <h3>Test Objects</h3>
+            <ul>
+              <li>Red Box</li>
+              <li>Green Sphere</li>
+              <li>Blue Cylinder</li>
+            </ul>
+            <p>Objects will fall under gravity and interact with the ground plane.</p>
           </div>
         </div>
       </div>

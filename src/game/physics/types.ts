@@ -49,4 +49,5 @@ export interface PhysicsBodyConfig {
   restitution?: number;
   linearDamping?: number;
   angularDamping?: number;
+  isTrigger?: boolean;
 } 

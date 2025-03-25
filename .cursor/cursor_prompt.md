@@ -986,5 +986,4 @@ const LoadingScreen = ({ progress }) => {
     "Some robots can combine to form even bigger robots!",
     "The faster you move, the harder it is to aim your weapons!",
     "Use buildings for cover during battles!",
-    "Different weapons work better against different robots!",
-    "You can upgrade your
+    "Different weapons work better against different robots!"

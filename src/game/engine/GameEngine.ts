@@ -81,6 +81,7 @@ export class GameEngine {
       
       // Initialize stats
       this.stats = new Stats();
+      document.body.appendChild(this.stats.dom);
 
       // Initialize scene
       this.scene = new THREE.Scene();
@@ -89,11 +90,12 @@ export class GameEngine {
       // Initialize camera with child-friendly FOV
       this.camera = new THREE.PerspectiveCamera(
         60, // Reduced FOV for less motion sickness
-        window.innerWidth / window.innerHeight,
+        canvas.clientWidth / canvas.clientHeight,
         0.1,
         1000
       );
-      this.camera.position.z = 5;
+      this.camera.position.set(0, 5, 10);
+      this.camera.lookAt(0, 0, 0);
 
       // Initialize renderer with antialiasing and shadow support
       this.renderer = new THREE.WebGLRenderer({
@@ -101,7 +103,7 @@ export class GameEngine {
         antialias: true,
         powerPreference: 'high-performance',
       });
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
+      this.renderer.setSize(canvas.clientWidth, canvas.clientHeight);
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
       this.renderer.shadowMap.enabled = true;
       this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -145,7 +147,7 @@ export class GameEngine {
       );
 
       // Start animation loop
-      this.animate();
+      this.resume();
     } catch (error) {
       this.handleError(error as Error);
     }
@@ -155,16 +157,15 @@ export class GameEngine {
     if (this.isInitialized) return;
 
     // Initialize input manager
-    this.inputManager.initialize();
+    await this.inputManager.initialize();
 
     // Set up canvas
     this.canvas.style.display = 'block';
-    this.canvas.style.position = 'fixed';
-    this.canvas.style.top = '0';
-    this.canvas.style.left = '0';
     this.canvas.style.width = '100%';
     this.canvas.style.height = '100%';
-    this.canvas.style.zIndex = '0';
+
+    // Handle initial resize
+    this.handleResize();
 
     this.isInitialized = true;
   }
@@ -276,11 +277,10 @@ export class GameEngine {
   }
 
   public resume() {
-    if (this.animationFrameId === null) {
-      this.clock.start();
+    this.isPaused = false;
+    if (!this.isRunning) {
       this.animate();
     }
-    this.isPaused = false;
   }
 
   public show(): void {

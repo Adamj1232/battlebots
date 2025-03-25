@@ -1,4 +1,4 @@
-type MovementKeys = 'forward' | 'backward' | 'left' | 'right' | 'jump' | 'transform';
+import { EventEmitter } from 'events';
 
 export interface InputState {
   forward: boolean;
@@ -7,123 +7,97 @@ export interface InputState {
   right: boolean;
   jump: boolean;
   transform: boolean;
-  mousePosition: { x: number; y: number };
-  mouseButtons: {
-    left: boolean;
-    middle: boolean;
-    right: boolean;
-  };
+  action: boolean;
 }
 
-export class InputManager {
-  private inputState: InputState = {
-    forward: false,
-    backward: false,
-    left: false,
-    right: false,
-    jump: false,
-    transform: false,
-    mousePosition: { x: 0, y: 0 },
-    mouseButtons: {
-      left: false,
-      middle: false,
-      right: false
-    }
-  };
+export class InputManager extends EventEmitter {
+  private keyState: { [key: string]: boolean } = {};
+  private mousePosition: { x: number; y: number } = { x: 0, y: 0 };
+  private mouseButtons: { [key: number]: boolean } = {};
+  private isInitialized: boolean = false;
 
-  private keyMap: { [key: string]: MovementKeys } = {
-    'w': 'forward',
-    'ArrowUp': 'forward',
-    's': 'backward',
-    'ArrowDown': 'backward',
-    'a': 'left',
-    'ArrowLeft': 'left',
-    'd': 'right',
-    'ArrowRight': 'right',
-    ' ': 'jump',
-    'Shift': 'transform'
-  };
+  constructor() {
+    super();
+    this.keyState = {};
+    this.mousePosition = { x: 0, y: 0 };
+    this.mouseButtons = {};
+  }
 
-  private isEnabled: boolean = false;
+  public async initialize(): Promise<void> {
+    if (this.isInitialized) return;
 
-  public initialize(): void {
-    if (this.isEnabled) return;
-    this.isEnabled = true;
-
+    // Keyboard events
     window.addEventListener('keydown', this.handleKeyDown);
     window.addEventListener('keyup', this.handleKeyUp);
+
+    // Mouse events
     window.addEventListener('mousemove', this.handleMouseMove);
     window.addEventListener('mousedown', this.handleMouseDown);
     window.addEventListener('mouseup', this.handleMouseUp);
-  }
 
-  public dispose(): void {
-    if (!this.isEnabled) return;
-    this.isEnabled = false;
-
-    window.removeEventListener('keydown', this.handleKeyDown);
-    window.removeEventListener('keyup', this.handleKeyUp);
-    window.removeEventListener('mousemove', this.handleMouseMove);
-    window.removeEventListener('mousedown', this.handleMouseDown);
-    window.removeEventListener('mouseup', this.handleMouseUp);
-  }
-
-  public getInputState(): InputState {
-    return { ...this.inputState };
+    this.isInitialized = true;
   }
 
   private handleKeyDown = (event: KeyboardEvent): void => {
-    const key = event.key;
-    const action = this.keyMap[key];
-    if (action) {
-      this.inputState[action] = true;
-      event.preventDefault();
-    }
+    this.keyState[event.key.toLowerCase()] = true;
+    this.emit('inputChange', this.getInputState());
   };
 
   private handleKeyUp = (event: KeyboardEvent): void => {
-    const key = event.key;
-    const action = this.keyMap[key];
-    if (action) {
-      this.inputState[action] = false;
-      event.preventDefault();
-    }
+    this.keyState[event.key.toLowerCase()] = false;
+    this.emit('inputChange', this.getInputState());
   };
 
   private handleMouseMove = (event: MouseEvent): void => {
-    this.inputState.mousePosition = {
-      x: event.clientX,
-      y: event.clientY
-    };
+    this.mousePosition.x = event.clientX;
+    this.mousePosition.y = event.clientY;
+    this.emit('mouseMove', this.mousePosition);
   };
 
   private handleMouseDown = (event: MouseEvent): void => {
-    switch (event.button) {
-      case 0:
-        this.inputState.mouseButtons.left = true;
-        break;
-      case 1:
-        this.inputState.mouseButtons.middle = true;
-        break;
-      case 2:
-        this.inputState.mouseButtons.right = true;
-        break;
-    }
+    this.mouseButtons[event.button] = true;
+    this.emit('mouseDown', event.button);
   };
 
   private handleMouseUp = (event: MouseEvent): void => {
-    switch (event.button) {
-      case 0:
-        this.inputState.mouseButtons.left = false;
-        break;
-      case 1:
-        this.inputState.mouseButtons.middle = false;
-        break;
-      case 2:
-        this.inputState.mouseButtons.right = false;
-        break;
-    }
+    this.mouseButtons[event.button] = false;
+    this.emit('mouseUp', event.button);
   };
+
+  public getInputState(): InputState {
+    return {
+      forward: this.keyState['w'] || this.keyState['arrowup'] || false,
+      backward: this.keyState['s'] || this.keyState['arrowdown'] || false,
+      left: this.keyState['a'] || this.keyState['arrowleft'] || false,
+      right: this.keyState['d'] || this.keyState['arrowright'] || false,
+      jump: this.keyState[' '] || false,
+      transform: this.keyState['t'] || false,
+      action: this.keyState['e'] || false
+    };
+  }
+
+  public getMousePosition(): { x: number; y: number } {
+    return { ...this.mousePosition };
+  }
+
+  public isMouseButtonDown(button: number): boolean {
+    return this.mouseButtons[button] || false;
+  }
+
+  public dispose(): void {
+    if (!this.isInitialized) return;
+
+    // Remove keyboard events
+    window.removeEventListener('keydown', this.handleKeyDown);
+    window.removeEventListener('keyup', this.handleKeyUp);
+
+    // Remove mouse events
+    window.removeEventListener('mousemove', this.handleMouseMove);
+    window.removeEventListener('mousedown', this.handleMouseDown);
+    window.removeEventListener('mouseup', this.handleMouseUp);
+
+    this.isInitialized = false;
+  }
 }
 
 export default InputManager; 
