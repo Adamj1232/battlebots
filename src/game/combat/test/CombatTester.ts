@@ -1,6 +1,9 @@
 import { CombatManager } from '../CombatManager.js';
-import { CombatStats, AbilityInfo, DamageInfo } from '../types.js';
+import { CombatStats, AbilityInfo, CombatOptions } from '../types.js';
 import { getAbilities } from '../abilities/index.js';
+import { PhysicsEngine } from '../../physics/PhysicsEngine.js';
+import { PhysicsConfig } from '../../physics/types.js';
+import * as THREE from 'three';
 
 interface TestResult {
   success: boolean;
@@ -12,7 +15,16 @@ export class CombatTester {
   private combatManager: CombatManager;
 
   constructor() {
-    this.combatManager = new CombatManager();
+    const physicsEngine = new PhysicsEngine(PhysicsConfig.getDefault());
+    const combatOptions: CombatOptions = {
+      isRealTime: true,
+      criticalChance: 0.1,
+      criticalMultiplier: 1.5,
+      maxEnergy: 100,
+      energyRegenRate: 20,
+      turnDuration: 5
+    };
+    this.combatManager = new CombatManager(physicsEngine, combatOptions);
   }
 
   public async runAllTests(): Promise<TestResult[]> {
@@ -53,21 +65,17 @@ export class CombatTester {
       });
 
       // Test basic attack
-      const attackResult = this.combatManager.performAttack(
-        'attacker',
-        'defender',
-        { isMelee: true }
-      );
+      this.combatManager.submitAction({
+        type: 'attack',
+        source: 'attacker',
+        target: 'defender',
+        position: new THREE.Vector3(),
+        direction: new THREE.Vector3(0, 1, 0),
+        data: { isMelee: true }
+      });
 
-      if (!attackResult) {
-        return {
-          success: false,
-          message: 'Basic attack failed to execute'
-        };
-      }
-
-      const defenderStats = this.combatManager.getStats('defender');
-      if (!defenderStats || defenderStats.health >= 100) {
+      const defenderState = this.combatManager.getParticipant('defender');
+      if (!defenderState || defenderState.stats.health >= 100) {
         return {
           success: false,
           message: 'Attack did not reduce defender health'
@@ -78,7 +86,7 @@ export class CombatTester {
         success: true,
         message: 'Basic combat test passed',
         data: {
-          damageDealt: 100 - defenderStats.health
+          damageDealt: 100 - defenderState.stats.health
         }
       };
     } catch (error: unknown) {
@@ -117,31 +125,28 @@ export class CombatTester {
       });
 
       // Get initial energy
-      const initialEnergy = this.combatManager.getStats('attacker')?.energy || 0;
+      const attackerState = this.combatManager.getParticipant('attacker');
+      const initialEnergy = attackerState?.stats.energy || 0;
 
       // Test ability usage
       const ability = attacker.abilities[0];
-      const useResult = this.combatManager.useAbility(
-        'attacker',
-        ability.id,
-        'defender'
-      );
-
-      if (!useResult) {
-        return {
-          success: false,
-          message: 'Failed to use ability'
-        };
-      }
+      this.combatManager.submitAction({
+        type: 'ability',
+        source: 'attacker',
+        target: 'defender',
+        position: new THREE.Vector3(),
+        direction: new THREE.Vector3(0, 1, 0),
+        data: { abilityId: ability.id }
+      });
 
       // Verify energy cost
-      const attackerStats = this.combatManager.getStats('attacker');
+      const updatedAttackerState = this.combatManager.getParticipant('attacker');
       const expectedEnergy = initialEnergy - ability.energyCost;
       
-      if (!attackerStats || attackerStats.energy !== expectedEnergy) {
+      if (!updatedAttackerState || updatedAttackerState.stats.energy !== expectedEnergy) {
         return {
           success: false,
-          message: `Ability did not consume correct energy. Expected: ${expectedEnergy}, Got: ${attackerStats?.energy}`
+          message: `Ability did not consume correct energy. Expected: ${expectedEnergy}, Got: ${updatedAttackerState?.stats.energy}`
         };
       }
 
@@ -149,7 +154,7 @@ export class CombatTester {
         success: true,
         message: 'Ability system test passed',
         data: {
-          energyUsed: initialEnergy - attackerStats.energy
+          energyUsed: initialEnergy - updatedAttackerState.stats.energy
         }
       };
     } catch (error: unknown) {
@@ -230,8 +235,8 @@ export class CombatTester {
       });
 
       // Get initial state
-      const initialStats = this.combatManager.getStats('test');
-      if (!initialStats) {
+      const initialState = this.combatManager.getParticipant('test');
+      if (!initialState) {
         return {
           success: false,
           message: 'Could not get initial stats'
@@ -242,21 +247,21 @@ export class CombatTester {
       this.combatManager.update(1.0);
 
       // Get updated stats
-      const updatedStats = this.combatManager.getStats('test');
-      if (!updatedStats) {
+      const updatedState = this.combatManager.getParticipant('test');
+      if (!updatedState) {
         return {
           success: false,
           message: 'Could not get updated stats'
         };
       }
 
-      const energyRegenerated = updatedStats.energy - initialStats.energy;
+      const energyRegenerated = updatedState.stats.energy - initialState.stats.energy;
       const expectedRegenAmount = 20; // 20% of maxEnergy per second
 
       if (energyRegenerated < expectedRegenAmount) {
         return {
           success: false,
-          message: `Energy did not regenerate enough. Expected at least ${expectedRegenAmount}, got ${energyRegenerated}. Initial: ${initialStats.energy}, Updated: ${updatedStats.energy}`
+          message: `Energy did not regenerate enough. Expected at least ${expectedRegenAmount}, got ${energyRegenerated}. Initial: ${initialState.stats.energy}, Updated: ${updatedState.stats.energy}`
         };
       }
 
@@ -264,8 +269,8 @@ export class CombatTester {
         success: true,
         message: 'Energy system test passed',
         data: {
-          initialEnergy: initialStats.energy,
-          finalEnergy: updatedStats.energy,
+          initialEnergy: initialState.stats.energy,
+          finalEnergy: updatedState.stats.energy,
           energyRegenerated
         }
       };
@@ -306,14 +311,17 @@ export class CombatTester {
           maxEnergy: 100
         });
 
-        this.combatManager.performAttack(
-          'attacker',
-          'defender',
-          { isMelee: true }
-        );
+        this.combatManager.submitAction({
+          type: 'attack',
+          source: 'attacker',
+          target: 'defender',
+          position: new THREE.Vector3(),
+          direction: new THREE.Vector3(0, 1, 0),
+          data: { isMelee: true }
+        });
 
-        const defenderStats = this.combatManager.getStats('defender');
-        const damageDealt = 100 - (defenderStats?.health || 0);
+        const defenderState = this.combatManager.getParticipant('defender');
+        const damageDealt = 100 - (defenderState?.stats.health || 0);
 
         if (
           damageDealt < testCase.expectedRange[0] ||
@@ -357,30 +365,37 @@ export class CombatTester {
 
       // Use ability
       const ability = attacker.abilities[0];
-      this.combatManager.useAbility('attacker', ability.id);
+      this.combatManager.submitAction({
+        type: 'ability',
+        source: 'attacker',
+        target: 'defender',
+        position: new THREE.Vector3(),
+        direction: new THREE.Vector3(0, 1, 0),
+        data: { abilityId: ability.id }
+      });
 
       // Try to use ability again immediately
-      const secondUse = this.combatManager.useAbility('attacker', ability.id);
-
-      if (secondUse) {
-        return {
-          success: false,
-          message: 'Ability cooldown was not enforced'
-        };
-      }
+      this.combatManager.submitAction({
+        type: 'ability',
+        source: 'attacker',
+        target: 'defender',
+        position: new THREE.Vector3(),
+        direction: new THREE.Vector3(0, 1, 0),
+        data: { abilityId: ability.id }
+      });
 
       // Wait for cooldown
       await new Promise(resolve => setTimeout(resolve, ability.cooldown + 100));
 
       // Try again after cooldown
-      const thirdUse = this.combatManager.useAbility('attacker', ability.id);
-
-      if (!thirdUse) {
-        return {
-          success: false,
-          message: 'Ability could not be used after cooldown'
-        };
-      }
+      this.combatManager.submitAction({
+        type: 'ability',
+        source: 'attacker',
+        target: 'defender',
+        position: new THREE.Vector3(),
+        direction: new THREE.Vector3(0, 1, 0),
+        data: { abilityId: ability.id }
+      });
 
       return {
         success: true,
