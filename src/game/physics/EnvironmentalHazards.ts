@@ -1,6 +1,5 @@
 import { Vector3, Object3D, Mesh, Box3, Euler } from 'three';
 import { PhysicsEngine } from './PhysicsEngine';
-import { PhysicsConfig } from './types';
 
 interface Hazard {
   mesh: Mesh;

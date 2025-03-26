@@ -1,6 +1,12 @@
-import { Vector3, Object3D, Line, BufferGeometry, LineBasicMaterial, Float32BufferAttribute } from 'three';
-import { PhysicsEngine } from './PhysicsEngine';
-import { PhysicsConfig } from './types';
+import {
+  Vector3,
+  Object3D,
+  Line,
+  BufferGeometry,
+  LineBasicMaterial,
+  Float32BufferAttribute,
+} from "three";
+import { PhysicsEngine } from "./PhysicsEngine";
 
 interface GrapplePoint {
   position: Vector3;
@@ -26,7 +32,7 @@ export class GrapplingSystem {
     minDistance: 2,
     pullForce: 1000,
     damping: 0.5,
-    stiffness: 0.8
+    stiffness: 0.8,
   };
 
   constructor(scene: Object3D, physicsEngine: PhysicsEngine) {
@@ -47,17 +53,13 @@ export class GrapplingSystem {
     this.scene.add(line);
 
     // Create physics constraint
-    const constraint = this.physicsEngine.addConstraint(
-      source,
-      target,
-      {
-        pivotA: source.position,
-        pivotB: grapplePoint.position,
-        maxDistance: grapplePoint.distance,
-        stiffness: this.GRAPPLE_CONFIG.stiffness,
-        damping: this.GRAPPLE_CONFIG.damping
-      }
-    );
+    const constraint = this.physicsEngine.addConstraint(source, target, {
+      pivotA: source.position,
+      pivotB: grapplePoint.position,
+      maxDistance: grapplePoint.distance,
+      stiffness: this.GRAPPLE_CONFIG.stiffness,
+      damping: this.GRAPPLE_CONFIG.damping,
+    });
 
     if (!constraint) {
       this.scene.remove(line);
@@ -70,7 +72,7 @@ export class GrapplingSystem {
       point: grapplePoint,
       line,
       constraint,
-      isActive: true
+      isActive: true,
     };
 
     this.activeGrapples.set(id, grapple);
@@ -91,22 +93,32 @@ export class GrapplingSystem {
   }
 
   public update(deltaTime: number): void {
-    this.activeGrapples.forEach(grapple => {
+    this.activeGrapples.forEach((grapple) => {
       if (!grapple.isActive) return;
 
       // Update line positions
       const sourcePos = new Vector3();
       const targetPos = new Vector3();
-      
+
       grapple.source.getWorldPosition(sourcePos);
       grapple.target.getWorldPosition(targetPos);
 
       // Update line geometry
       const lineGeometry = grapple.line.geometry as BufferGeometry;
-      lineGeometry.setAttribute('position', new Float32BufferAttribute([
-        sourcePos.x, sourcePos.y, sourcePos.z,
-        targetPos.x, targetPos.y, targetPos.z
-      ], 3));
+      lineGeometry.setAttribute(
+        "position",
+        new Float32BufferAttribute(
+          [
+            sourcePos.x,
+            sourcePos.y,
+            sourcePos.z,
+            targetPos.x,
+            targetPos.y,
+            targetPos.z,
+          ],
+          3
+        )
+      );
       lineGeometry.computeBoundingSphere();
 
       // Apply pull force if distance exceeds max
@@ -122,15 +134,25 @@ export class GrapplingSystem {
   private createGrappleLine(source: Object3D, target: Object3D): Line {
     const sourcePos = new Vector3();
     const targetPos = new Vector3();
-    
+
     source.getWorldPosition(sourcePos);
     target.getWorldPosition(targetPos);
 
     const geometry = new BufferGeometry();
-    geometry.setAttribute('position', new Float32BufferAttribute([
-      sourcePos.x, sourcePos.y, sourcePos.z,
-      targetPos.x, targetPos.y, targetPos.z
-    ], 3));
+    geometry.setAttribute(
+      "position",
+      new Float32BufferAttribute(
+        [
+          sourcePos.x,
+          sourcePos.y,
+          sourcePos.z,
+          targetPos.x,
+          targetPos.y,
+          targetPos.z,
+        ],
+        3
+      )
+    );
     geometry.computeBoundingSphere();
 
     const material = new LineBasicMaterial({ color: 0x00ff00 });
@@ -144,7 +166,7 @@ export class GrapplingSystem {
   ): GrapplePoint | null {
     const sourcePos = new Vector3();
     const targetPos = new Vector3();
-    
+
     source.getWorldPosition(sourcePos);
     target.getWorldPosition(targetPos);
 
@@ -163,7 +185,7 @@ export class GrapplingSystem {
     return {
       position: intersect.point,
       normal: intersect.face?.normal || new Vector3(),
-      distance: intersect.distance
+      distance: intersect.distance,
     };
   }
-} 
+}

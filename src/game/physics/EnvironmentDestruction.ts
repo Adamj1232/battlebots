@@ -1,6 +1,5 @@
 import { Object3D, Vector3, Box3, Mesh, MeshStandardMaterial, Euler } from 'three';
 import { PhysicsEngine } from './PhysicsEngine';
-import { PhysicsConfig } from './types';
 
 interface DestructibleObject {
   mesh: Mesh;

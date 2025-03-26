@@ -1,11 +1,21 @@
-import React, { useEffect, useRef } from 'react';
-import { Scene, PerspectiveCamera, WebGLRenderer, BoxGeometry, MeshStandardMaterial, Mesh, Vector3, Euler, Raycaster, Vector2 } from 'three';
-import * as THREE from 'three';
-import { PhysicsEngine } from '../PhysicsEngine';
-import { EnvironmentDestruction } from '../EnvironmentDestruction';
-import { RagdollSystem } from '../RagdollSystem';
-import { GrapplingSystem } from '../GrapplingSystem';
-import { EnvironmentalHazards } from '../EnvironmentalHazards';
+import React, { useEffect, useRef } from "react";
+import {
+  Scene,
+  PerspectiveCamera,
+  WebGLRenderer,
+  BoxGeometry,
+  MeshStandardMaterial,
+  Mesh,
+  Euler,
+  Raycaster,
+  Vector2,
+} from "three";
+import * as THREE from "three";
+import { PhysicsEngine } from "../PhysicsEngine";
+import { EnvironmentDestruction } from "../EnvironmentDestruction";
+import { RagdollSystem } from "../RagdollSystem";
+import { GrapplingSystem } from "../GrapplingSystem";
+import { EnvironmentalHazards } from "../EnvironmentalHazards";
 
 export const PhysicsTestScene: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -48,7 +58,10 @@ export const PhysicsTestScene: React.FC = () => {
     physicsEngineRef.current = physicsEngine;
 
     // Initialize physics systems
-    const environmentDestruction = new EnvironmentDestruction(scene, physicsEngine);
+    const environmentDestruction = new EnvironmentDestruction(
+      scene,
+      physicsEngine
+    );
     environmentDestructionRef.current = environmentDestruction;
 
     const ragdollSystem = new RagdollSystem(scene, physicsEngine);
@@ -77,7 +90,7 @@ export const PhysicsTestScene: React.FC = () => {
     const wall = new Mesh(wallGeometry, wallMaterial);
     wall.position.set(5, 2, 0);
     scene.add(wall);
-    environmentDestruction.registerDestructible('wall1', wall);
+    environmentDestruction.registerDestructible("wall1", wall);
 
     // Create environmental hazards
     const trapGeometry = new BoxGeometry(2, 0.1, 2);
@@ -85,7 +98,13 @@ export const PhysicsTestScene: React.FC = () => {
     const trap = new Mesh(trapGeometry, trapMaterial);
     trap.position.set(0, 0.1, 5);
     scene.add(trap);
-    environmentalHazards.createHazard('trap1', trap, 'trap', trap.position, new Euler());
+    environmentalHazards.createHazard(
+      "trap1",
+      trap,
+      "trap",
+      trap.position,
+      new Euler()
+    );
 
     // Add lighting
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
@@ -121,11 +140,16 @@ export const PhysicsTestScene: React.FC = () => {
       rendererRef.current.setSize(window.innerWidth, window.innerHeight);
     };
 
-    window.addEventListener('resize', handleResize);
+    window.addEventListener("resize", handleResize);
 
     // Handle mouse click for testing
     const handleClick = (event: MouseEvent) => {
-      if (!cameraRef.current || !raycasterRef.current || !environmentDestructionRef.current) return;
+      if (
+        !cameraRef.current ||
+        !raycasterRef.current ||
+        !environmentDestructionRef.current
+      )
+        return;
 
       const mouse = new Vector2(
         (event.clientX / window.innerWidth) * 2 - 1,
@@ -138,23 +162,27 @@ export const PhysicsTestScene: React.FC = () => {
       if (intersects.length > 0) {
         const object = intersects[0].object;
         if (object === wall) {
-          environmentDestructionRef.current.applyDamage('wall1', 50, intersects[0].point);
+          environmentDestructionRef.current.applyDamage(
+            "wall1",
+            50,
+            intersects[0].point
+          );
         }
       }
     };
 
-    window.addEventListener('click', handleClick);
+    window.addEventListener("click", handleClick);
 
     // Start animation
     animate(0);
 
     // Cleanup
     return () => {
-      window.removeEventListener('resize', handleResize);
-      window.removeEventListener('click', handleClick);
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("click", handleClick);
       containerRef.current?.removeChild(renderer.domElement);
     };
   }, []);
 
-  return <div ref={containerRef} style={{ width: '100%', height: '100%' }} />;
-}; 
+  return <div ref={containerRef} style={{ width: "100%", height: "100%" }} />;
+};
