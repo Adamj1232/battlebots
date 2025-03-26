@@ -1,172 +1,318 @@
-import { Vector3 } from 'three';
-import { CombatStats, DamageInfo, StatusEffect, AbilityInfo, CombatState, AttackOptions } from './types.js';
+import { EventEmitter } from 'events';
+import { PhysicsEngine } from '../physics/PhysicsEngine';
+import {
+  CombatState,
+  CombatAction,
+  CombatEvent,
+  CombatResult,
+  CombatOptions,
+  StatusEffect,
+  CombatStats,
+  AbilityInfo
+} from './types';
+import * as THREE from 'three';
 
-export class CombatManager {
-  private combatants: Map<string, CombatState> = new Map();
-  private stats: Map<string, CombatStats> = new Map();
-  private abilities: Map<string, AbilityInfo[]> = new Map();
+export class CombatManager extends EventEmitter {
+  private participants: Map<string, CombatState> = new Map();
+  private activeActions: CombatAction[] = [];
+  private options: CombatOptions;
+  private physicsEngine: PhysicsEngine;
+  private isCombatActive: boolean = false;
+  private currentTurn: number = 0;
+  private lastUpdateTime: number = 0;
 
-  constructor() {
-    this.setupEventListeners();
+  constructor(physicsEngine: PhysicsEngine, options: CombatOptions) {
+    super();
+    this.physicsEngine = physicsEngine;
+    this.options = options;
   }
 
-  private setupEventListeners() {
-    // TODO: Add event listeners for input handling
-  }
-
-  public initializeCombatant(id: string, stats: CombatStats, abilities: AbilityInfo[]) {
-    this.stats.set(id, stats);
-    this.abilities.set(id, abilities);
-    this.combatants.set(id, {
-      isInCombat: false,
-      activeEffects: [],
-      lastAttackTime: 0,
-      currentEnergy: stats.energy,
-      abilityCooldowns: {}
+  public initialize(participants: CombatState[]): void {
+    this.participants.clear();
+    participants.forEach(participant => {
+      this.participants.set(participant.id, participant);
     });
-  }
-
-  public performAttack(
-    attackerId: string,
-    targetId: string,
-    options: AttackOptions
-  ): boolean {
-    const attacker = this.stats.get(attackerId);
-    const target = this.stats.get(targetId);
-    const attackerState = this.combatants.get(attackerId);
-
-    if (!attacker || !target || !attackerState) return false;
-
-    // Check attack cooldown
-    const now = Date.now();
-    if (now - attackerState.lastAttackTime < 500) return false; // 500ms cooldown
-
-    // Calculate base damage
-    const damage: DamageInfo = {
-      amount: this.calculateDamage(attacker.attack, target.defense),
-      type: 'physical',
-      source: new Vector3(), // TODO: Get actual attacker position
-      knockback: options.isMelee ? 5 : 2
-    };
-
-    this.applyDamage(targetId, damage);
-    attackerState.lastAttackTime = now;
-    return true;
-  }
-
-  public useAbility(
-    userId: string,
-    abilityId: string,
-    targetId?: string
-  ): boolean {
-    const userState = this.combatants.get(userId);
-    const userStats = this.stats.get(userId);
-    const abilities = this.abilities.get(userId);
-
-    if (!userState || !userStats || !abilities) return false;
-
-    const ability = abilities.find(a => a.id === abilityId);
-    if (!ability) return false;
-
-    // Check cooldown
-    if (userState.abilityCooldowns[abilityId] > Date.now()) return false;
-
-    // Check energy cost
-    if (userState.currentEnergy < ability.energyCost) return false;
-
-    // Consume energy first
-    userState.currentEnergy = Math.max(0, userState.currentEnergy - ability.energyCost);
-
-    // Apply ability effects
-    if (ability.damage && targetId) {
-      const damage: DamageInfo = {
-        amount: ability.damage,
-        type: ability.damageType || 'physical',
-        source: new Vector3(), // TODO: Get actual user position
-      };
-      this.applyDamage(targetId, damage);
-    }
-
-    // Apply status effects
-    if (ability.effects && targetId) {
-      ability.effects.forEach(effect => {
-        this.applyStatusEffect(targetId, effect);
-      });
-    }
-
-    // Update cooldown
-    userState.abilityCooldowns[abilityId] = Date.now() + ability.cooldown;
-
-    return true;
-  }
-
-  private calculateDamage(attack: number, defense: number): number {
-    // Base damage is attack minus defense, minimum of 1
-    const baseDamage = Math.max(1, attack - defense);
-    // Add randomness between 0.8 and 1.2
-    const randomFactor = 0.8 + Math.random() * 0.4;
-    return Math.round(baseDamage * randomFactor);
-  }
-
-  public applyDamage(targetId: string, damage: DamageInfo): void {
-    const targetStats = this.stats.get(targetId);
-    if (!targetStats) return;
-
-    // Apply damage directly since defense is already handled in calculateDamage
-    targetStats.health = Math.max(0, targetStats.health - damage.amount);
-
-    // TODO: Trigger visual effects and sound
-    // TODO: Apply knockback using physics system
-  }
-
-  public applyStatusEffect(targetId: string, effect: StatusEffect): void {
-    const targetState = this.combatants.get(targetId);
-    if (!targetState) return;
-
-    // Remove any existing effect of the same type
-    targetState.activeEffects = targetState.activeEffects.filter(
-      e => e.type !== effect.type
-    );
-
-    // Add new effect
-    targetState.activeEffects.push({
-      ...effect,
-      duration: Date.now() + effect.duration
-    });
-  }
-
-  public getStats(id: string): CombatStats | undefined {
-    const stats = this.stats.get(id);
-    const state = this.combatants.get(id);
-    
-    if (!stats || !state) return undefined;
-
-    return {
-      ...stats,
-      energy: state.currentEnergy
-    };
+    this.isCombatActive = true;
+    this.currentTurn = 0;
+    this.lastUpdateTime = performance.now();
   }
 
   public update(deltaTime: number): void {
-    const now = Date.now();
+    if (!this.isCombatActive) return;
 
-    // Update all combatants
-    Array.from(this.combatants.entries()).forEach(([id, state]) => {
-      // Update energy regeneration
-      const stats = this.stats.get(id);
-      if (stats) {
-        const regenRate = stats.maxEnergy * 0.2; // 20% per second
-        const regenAmount = regenRate * deltaTime;
-        state.currentEnergy = Math.min(
-          stats.maxEnergy,
-          state.currentEnergy + regenAmount
-        );
+    // Update energy regeneration
+    this.updateEnergy(deltaTime);
+
+    // Process active actions
+    this.processActiveActions(deltaTime);
+
+    // Update status effects
+    this.updateStatusEffects(deltaTime);
+
+    // Check for victory/defeat conditions
+    this.checkCombatEnd();
+
+    // Update turn counter if in turn-based mode
+    if (!this.options.isRealTime) {
+      this.currentTurn++;
+    }
+  }
+
+  public submitAction(action: CombatAction): void {
+    if (!this.isCombatActive) return;
+
+    const source = this.participants.get(action.source);
+    if (!source) return;
+
+    // Validate action based on combat state
+    if (!this.validateAction(action, source)) return;
+
+    // Add action to active actions
+    this.activeActions.push(action);
+
+    // Emit action submitted event
+    this.emit('actionSubmitted', action);
+  }
+
+  private validateAction(action: CombatAction, source: CombatState): boolean {
+    // Check if source is stunned
+    if (source.activeEffects.some(effect => effect.type === 'stun')) {
+      return false;
+    }
+
+    // Check energy cost for abilities
+    if (action.type === 'ability') {
+      const abilityData = action.data as { energyCost: number };
+      if (source.stats.energy < abilityData.energyCost) {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  private processActiveActions(deltaTime: number): void {
+    for (let i = this.activeActions.length - 1; i >= 0; i--) {
+      const action = this.activeActions[i];
+      const result = this.executeAction(action);
+
+      if (result) {
+        this.emit('actionExecuted', { action, result });
       }
 
-      // Clean up expired effects
-      state.activeEffects = state.activeEffects.filter(effect => {
-        return effect.duration > now;
-      });
+      // Remove completed actions
+      if (this.isActionComplete(action)) {
+        this.activeActions.splice(i, 1);
+      }
+    }
+  }
+
+  private executeAction(action: CombatAction): CombatResult | null {
+    switch (action.type) {
+      case 'attack':
+        return this.executeAttack(action);
+      case 'ability':
+        return this.executeAbility(action);
+      case 'transform':
+        return this.executeTransform(action);
+      case 'move':
+        return this.executeMove(action);
+      default:
+        return null;
+    }
+  }
+
+  private executeAttack(action: CombatAction): CombatResult | null {
+    const source = this.participants.get(action.source);
+    const target = action.target ? this.participants.get(action.target) : null;
+
+    if (!source || !target || !action.position || !action.direction) return null;
+
+    const damage = this.calculateDamage(source, target);
+    const critical = this.rollCritical();
+    const finalDamage = critical ? damage * this.options.criticalMultiplier : damage;
+
+    // Apply damage
+    target.stats.health -= finalDamage;
+
+    // Create combat event
+    const event: CombatEvent = {
+      type: 'damage',
+      source: action.source,
+      target: action.target,
+      amount: finalDamage,
+      position: action.position,
+      timestamp: performance.now()
+    };
+
+    this.emit('combatEvent', event);
+
+    return {
+      damage: finalDamage,
+      critical,
+      effects: [],
+      position: action.position,
+      direction: action.direction
+    };
+  }
+
+  private calculateDamage(source: CombatState, target: CombatState): number {
+    const baseDamage = source.stats.attack;
+    const defense = target.stats.defense;
+    const randomFactor = 0.8 + Math.random() * 0.4; // 80-120% variation
+
+    return Math.max(1, Math.floor((baseDamage - defense) * randomFactor));
+  }
+
+  private rollCritical(): boolean {
+    return Math.random() < this.options.criticalChance;
+  }
+
+  private executeAbility(action: CombatAction): CombatResult | null {
+    const source = this.participants.get(action.source);
+    if (!source || !action.position || !action.direction) return null;
+
+    const abilityData = action.data as { energyCost: number, effects: StatusEffect[] };
+    source.stats.energy -= abilityData.energyCost;
+
+    // Apply ability effects
+    if (action.target) {
+      const target = this.participants.get(action.target);
+      if (target) {
+        target.activeEffects.push(...abilityData.effects);
+      }
+    }
+
+    return {
+      damage: 0,
+      critical: false,
+      effects: abilityData.effects,
+      position: action.position,
+      direction: action.direction
+    };
+  }
+
+  private executeTransform(action: CombatAction): CombatResult | null {
+    const source = this.participants.get(action.source);
+    if (!source || !action.position || !action.direction) return null;
+
+    source.isTransformed = !source.isTransformed;
+
+    const event: CombatEvent = {
+      type: 'transform',
+      source: action.source,
+      timestamp: performance.now()
+    };
+
+    this.emit('combatEvent', event);
+
+    return {
+      damage: 0,
+      critical: false,
+      effects: [],
+      position: action.position,
+      direction: action.direction
+    };
+  }
+
+  private executeMove(action: CombatAction): CombatResult | null {
+    const source = this.participants.get(action.source);
+    if (!source || !action.position || !action.direction) return null;
+
+    // Update position using physics engine
+    source.position.copy(action.position);
+
+    return {
+      damage: 0,
+      critical: false,
+      effects: [],
+      position: action.position,
+      direction: action.direction
+    };
+  }
+
+  private updateEnergy(deltaTime: number): void {
+    this.participants.forEach(participant => {
+      participant.stats.energy = Math.min(
+        this.options.maxEnergy,
+        participant.stats.energy + deltaTime * this.options.energyRegenRate
+      );
     });
+  }
+
+  private updateStatusEffects(deltaTime: number): void {
+    this.participants.forEach(participant => {
+      for (let i = participant.activeEffects.length - 1; i >= 0; i--) {
+        const effect = participant.activeEffects[i];
+        effect.duration -= deltaTime;
+
+        if (effect.duration <= 0) {
+          participant.activeEffects.splice(i, 1);
+        }
+      }
+    });
+  }
+
+  private checkCombatEnd(): void {
+    const aliveParticipants = Array.from(this.participants.values())
+      .filter(participant => participant.stats.health > 0);
+
+    if (aliveParticipants.length <= 1) {
+      this.endCombat(aliveParticipants[0]?.id);
+    }
+  }
+
+  private endCombat(winnerId?: string): void {
+    this.isCombatActive = false;
+
+    const event: CombatEvent = {
+      type: winnerId ? 'victory' : 'defeat',
+      source: winnerId || '',
+      timestamp: performance.now()
+    };
+
+    this.emit('combatEvent', event);
+  }
+
+  private isActionComplete(action: CombatAction): boolean {
+    // Implement action completion logic based on action type
+    return true; // Placeholder
+  }
+
+  public getParticipant(id: string): CombatState | undefined {
+    return this.participants.get(id);
+  }
+
+  public getAllParticipants(): CombatState[] {
+    return Array.from(this.participants.values());
+  }
+
+  public isActive(): boolean {
+    return this.isCombatActive;
+  }
+
+  public getCurrentTurn(): number {
+    return this.currentTurn;
+  }
+
+  public initializeCombatant(id: string, stats: CombatStats, abilities: AbilityInfo[] = []): void {
+    this.participants.set(id, {
+      id,
+      stats,
+      abilities,
+      activeEffects: [],
+      cooldowns: new Map(),
+      position: new THREE.Vector3(),
+      rotation: new THREE.Euler(),
+      faction: 'autobot',
+      isTransformed: false
+    });
+  }
+
+  public applyStatusEffect(targetId: string, effect: StatusEffect): void {
+    const target = this.participants.get(targetId);
+    if (target) {
+      target.activeEffects.push(effect);
+    }
   }
 } 

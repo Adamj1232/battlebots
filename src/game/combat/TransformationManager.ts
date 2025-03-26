@@ -57,7 +57,12 @@ export class TransformationManager {
     state.lastTransformTime = now;
 
     // Create transformation effect
-    this.effects.createTransformationEffect(object.position);
+    this.effects.handleCombatEvent({
+      type: 'transform',
+      source: id,
+      position: object.position,
+      timestamp: Date.now()
+    });
 
     // Play transformation animation
     this.playTransformationAnimation(id, state.currentForm === 'robot' ? 'vehicle' : 'robot');
@@ -101,17 +106,17 @@ export class TransformationManager {
   }
 
   private updateStatsForForm(id: string, form: 'robot' | 'vehicle'): void {
-    const stats = this.combatManager.getStats(id);
-    if (!stats) return;
+    const participant = this.combatManager['participants'].get(id);
+    if (!participant) return;
 
     if (form === 'vehicle') {
       // Vehicle form: faster, less defense
-      stats.speed *= 1.5;
-      stats.defense *= 0.7;
+      participant.stats.speed *= 1.5;
+      participant.stats.defense *= 0.7;
     } else {
       // Robot form: normal stats
-      stats.speed /= 1.5;
-      stats.defense /= 0.7;
+      participant.stats.speed /= 1.5;
+      participant.stats.defense /= 0.7;
     }
   }
 

@@ -8,6 +8,8 @@ import { TransformationManager } from '../TransformationManager';
 import { CombatUI } from '../ui/CombatUI';
 import { FloatingTextManager } from '../ui/FloatingText';
 import { getAbilities } from '../abilities';
+import { PhysicsEngine } from '../../physics/PhysicsEngine';
+import * as THREE from 'three';
 
 export const CombatTestScene: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -72,7 +74,27 @@ export const CombatTestScene: React.FC = () => {
     sceneRef.current.add(directionalLight);
 
     // Initialize combat systems
-    const combatManager = new CombatManager();
+    const physicsEngine = new PhysicsEngine({
+      gravity: new THREE.Vector3(0, -9.81, 0),
+      solver: {
+        iterations: 10,
+        tolerance: 0.001
+      },
+      constraints: {
+        iterations: 10,
+        tolerance: 0.001
+      },
+      allowSleep: true
+    });
+    const combatOptions = {
+      isRealTime: true,
+      criticalChance: 0.1,
+      criticalMultiplier: 1.5,
+      maxEnergy: 100,
+      energyRegenRate: 20,
+      turnDuration: 5 // 5 seconds per turn
+    };
+    const combatManager = new CombatManager(physicsEngine, combatOptions);
     const combatEffects = new CombatEffects(sceneRef.current);
     const transformationManager = new TransformationManager(
       sceneRef.current,

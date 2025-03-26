@@ -1,4 +1,4 @@
-import { Vector3, Mesh, MeshBasicMaterial, SphereGeometry } from 'three';
+import { Vector3, Mesh, MeshBasicMaterial, SphereGeometry, Object3D } from 'three';
 import { CombatEffect, EffectOptions, EffectType } from './types.js';
 
 export class ImpactEffect implements CombatEffect {
@@ -16,7 +16,14 @@ export class ImpactEffect implements CombatEffect {
 
   constructor() {
     this.position = new Vector3();
-    this.options = {};
+    this.options = {
+      particleCount: 10,
+      particleSize: 0.1,
+      particleLifetime: 0.5,
+      effectScale: 2,
+      effectColor: '#ff0000',
+      effectIntensity: 1
+    };
     this.isActive = false;
     this.timeAlive = 0;
     
@@ -38,9 +45,9 @@ export class ImpactEffect implements CombatEffect {
     this.isActive = true;
     
     // Configure effect based on options
-    this.maxScale = options.scale || 2;
-    this.fadeOutDuration = options.duration || 0.5;
-    this.initialIntensity = options.intensity || 1;
+    this.maxScale = options.effectScale;
+    this.fadeOutDuration = options.particleLifetime;
+    this.initialIntensity = options.effectIntensity;
     
     // Update mesh properties
     this.mesh.position.copy(position);
@@ -70,6 +77,10 @@ export class ImpactEffect implements CombatEffect {
   public dispose(): void {
     this.mesh.visible = false;
     this.isActive = false;
+  }
+
+  public getObject(): THREE.Object3D {
+    return this.mesh;
   }
 
   public getMesh(): Mesh {

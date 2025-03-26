@@ -178,7 +178,8 @@ export class CombatTester {
       this.combatManager.applyStatusEffect('target', {
         type: 'slow',
         duration: effectDuration,
-        strength: 0.5
+        strength: 0.5,
+        source: 'test'
       });
 
       // Verify effect is active

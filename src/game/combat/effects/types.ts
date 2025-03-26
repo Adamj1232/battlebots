@@ -1,33 +1,35 @@
-import { Vector3 } from 'three';
+import * as THREE from 'three';
 
 export enum EffectType {
-  IMPACT = 'IMPACT',
-  WEAPON_TRAIL = 'WEAPON_TRAIL',
-  STATUS_EFFECT = 'STATUS_EFFECT',
-  ENVIRONMENTAL = 'ENVIRONMENTAL',
-  TRANSFORMATION = 'TRANSFORMATION',
-  SPECIAL_ABILITY = 'SPECIAL_ABILITY',
-  DAMAGE_INDICATOR = 'DAMAGE_INDICATOR'
+  IMPACT = 'impact',
+  ENERGY = 'energy',
+  STATUS = 'status',
+  TRANSFORM = 'transform',
+  WEAPON_TRAIL = 'weapon_trail',
+  ENVIRONMENTAL = 'environmental'
 }
 
 export interface EffectOptions {
-  duration?: number;
-  scale?: number;
-  color?: string;
-  intensity?: number;
-  direction?: Vector3;
-  parent?: any;
+  particleCount: number;
+  particleSize: number;
+  particleLifetime: number;
+  effectScale: number;
+  effectColor: THREE.Color | string;
+  effectIntensity: number;
+  geometry?: THREE.BufferGeometry;
+  material?: THREE.Material;
 }
 
 export interface CombatEffect {
   type: EffectType;
-  position: Vector3;
+  position: THREE.Vector3;
   options: EffectOptions;
   isActive: boolean;
   timeAlive: number;
   
-  initialize(position: Vector3, options: EffectOptions): void;
+  initialize(position: THREE.Vector3, options: EffectOptions): void;
   update(deltaTime: number): void;
   isComplete(): boolean;
   dispose(): void;
+  getObject(): THREE.Object3D;
 } 

@@ -1,4 +1,4 @@
-import { Vector2, Camera, Raycaster, Object3D } from 'three';
+import { Vector2, Camera, Raycaster, Object3D, Vector3 } from 'three';
 import { CombatManager } from './CombatManager';
 
 export class CombatControls {
@@ -60,11 +60,14 @@ export class CombatControls {
   private handleBasicAttack(event: MouseEvent): void {
     const target = this.getTargetUnderMouse();
     if (target && target.userData.combatId) {
-      this.combatManager.performAttack(
-        this.playerId,
-        target.userData.combatId,
-        { isMelee: this.isInMeleeRange(target) }
-      );
+      this.combatManager.submitAction({
+        type: 'attack',
+        source: this.playerId,
+        target: target.userData.combatId,
+        position: this.scene.getObjectByName(this.playerId)?.position,
+        direction: target.position.clone().sub(this.scene.getObjectByName(this.playerId)?.position || new Vector3()).normalize(),
+        data: { isMelee: this.isInMeleeRange(target) }
+      });
     }
   }
 
@@ -73,11 +76,14 @@ export class CombatControls {
 
     const target = this.getTargetUnderMouse();
     if (target && target.userData.combatId) {
-      this.combatManager.useAbility(
-        this.playerId,
-        this.selectedAbility,
-        target.userData.combatId
-      );
+      this.combatManager.submitAction({
+        type: 'ability',
+        source: this.playerId,
+        target: target.userData.combatId,
+        position: this.scene.getObjectByName(this.playerId)?.position,
+        direction: target.position.clone().sub(this.scene.getObjectByName(this.playerId)?.position || new Vector3()).normalize(),
+        data: { abilityId: this.selectedAbility }
+      });
     }
 
     this.cancelTargeting();

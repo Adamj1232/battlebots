@@ -64,10 +64,10 @@ export class EnemyAI {
   }
 
   private updateBehavior(enemyId: string, state: AIState): void {
-    const stats = this.combatManager.getStats(enemyId);
-    if (!stats) return;
+    const participant = this.combatManager['participants'].get(enemyId);
+    if (!participant) return;
 
-    const healthPercentage = stats.health / stats.maxHealth;
+    const healthPercentage = participant.stats.health / participant.stats.maxHealth;
 
     // Change behavior based on health
     if (healthPercentage < 0.3) {
@@ -93,8 +93,13 @@ export class EnemyAI {
 
     // Attack if in range
     if (this.isInRange(enemyObj.position, target.position, 5)) {
-      this.combatManager.performAttack(enemyId, target.userData.combatId, {
-        isMelee: true
+      this.combatManager.submitAction({
+        type: 'attack',
+        source: enemyId,
+        target: target.userData.combatId,
+        position: enemyObj.position,
+        direction: target.position.clone().sub(enemyObj.position).normalize(),
+        data: { isMelee: true }
       });
     }
 
@@ -117,8 +122,13 @@ export class EnemyAI {
 
     // Attack only if player is very close
     if (this.isInRange(enemyObj.position, target.position, 4)) {
-      this.combatManager.performAttack(enemyId, target.userData.combatId, {
-        isMelee: true
+      this.combatManager.submitAction({
+        type: 'attack',
+        source: enemyId,
+        target: target.userData.combatId,
+        position: enemyObj.position,
+        direction: target.position.clone().sub(enemyObj.position).normalize(),
+        data: { isMelee: true }
       });
     }
   }
@@ -139,8 +149,13 @@ export class EnemyAI {
 
     // Perform ranged attacks
     if (this.isInRange(enemyObj.position, target.position, 15)) {
-      this.combatManager.performAttack(enemyId, target.userData.combatId, {
-        isMelee: false
+      this.combatManager.submitAction({
+        type: 'attack',
+        source: enemyId,
+        target: target.userData.combatId,
+        position: enemyObj.position,
+        direction: target.position.clone().sub(enemyObj.position).normalize(),
+        data: { isMelee: false }
       });
     }
   }
@@ -181,7 +196,14 @@ export class EnemyAI {
   private useRandomAbility(enemyId: string, targetId: string): void {
     // Simple random ability usage
     const abilityId = `ability_${Math.floor(Math.random() * 4) + 1}`;
-    this.combatManager.useAbility(enemyId, abilityId, targetId);
+    this.combatManager.submitAction({
+      type: 'ability',
+      source: enemyId,
+      target: targetId,
+      position: this.scene.getObjectByName(enemyId)?.position || new Vector3(),
+      direction: new Vector3(0, 1, 0),
+      data: { abilityId }
+    });
   }
 
   public setDifficulty(difficulty: number): void {

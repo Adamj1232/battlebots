@@ -85,11 +85,10 @@ export class CombatEffectManager {
     const baseSizes = {
       [EffectType.IMPACT]: 10,
       [EffectType.WEAPON_TRAIL]: 5,
-      [EffectType.STATUS_EFFECT]: 8,
+      [EffectType.STATUS]: 8,
       [EffectType.ENVIRONMENTAL]: 3,
-      [EffectType.TRANSFORMATION]: 2,
-      [EffectType.SPECIAL_ABILITY]: 4,
-      [EffectType.DAMAGE_INDICATOR]: 15
+      [EffectType.TRANSFORM]: 2,
+      [EffectType.ENERGY]: 4
     };
 
     const multiplier = this.devicePerformance === 'high' ? 1.5 : 

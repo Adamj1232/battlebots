@@ -35,6 +35,8 @@ const createStatusAbility = (
   id,
   name,
   description,
+  damage: 0,
+  damageType: 'status',
   energyCost,
   cooldown,
   range,
@@ -42,7 +44,8 @@ const createStatusAbility = (
   effects: [{
     type: effectType,
     duration,
-    strength
+    strength,
+    source: id
   }]
 });
 
@@ -79,10 +82,13 @@ export const AutobotAbilities: Record<string, AbilityInfo> = {
     energyCost: 30,
     cooldown: 15000,
     range: 0,
+    damage: 0,
+    damageType: 'status',
     effects: [{
       type: 'heal',
       duration: 5000,
-      strength: 10
+      strength: 10,
+      source: 'repairProtocol'
     }]
   },
 
@@ -145,16 +151,20 @@ export const DecepticonAbilities: Record<string, AbilityInfo> = {
     cooldown: 15000,
     range: 8,
     duration: 6000,
+    damage: 0,
+    damageType: 'status',
     effects: [
       {
         type: 'defense_boost',
         duration: 6000,
-        strength: -0.3
+        strength: -0.3,
+        source: 'terrorField'
       },
       {
         type: 'attack_boost',
         duration: 6000,
-        strength: -0.2
+        strength: -0.2,
+        source: 'terrorField'
       }
     ]
   }

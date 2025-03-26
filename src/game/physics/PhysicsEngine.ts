@@ -3,6 +3,7 @@ import { PhysicsConfig } from './types';
 
 export class PhysicsEngine {
   private world: CANNON.World;
+  private bodies: Map<string, THREE.Object3D> = new Map();
 
   constructor(config: PhysicsConfig) {
     this.world = new CANNON.World();
@@ -48,5 +49,9 @@ export class PhysicsEngine {
     while (this.world.bodies.length > 0) {
       this.world.removeBody(this.world.bodies[0]);
     }
+  }
+
+  public getBody(id: string): THREE.Object3D | undefined {
+    return this.bodies.get(id);
   }
 } 
