@@ -34,7 +34,10 @@ export const CombatTestScene: React.FC = () => {
     defense: 10,
     speed: 5,
     energy: 100,
-    maxEnergy: 100
+    maxEnergy: 100,
+    weight: 100,
+    specialAttack: 15,
+    specialDefense: 10
   };
 
   const enemyStats = {
@@ -44,7 +47,10 @@ export const CombatTestScene: React.FC = () => {
     defense: 8,
     speed: 4,
     energy: 80,
-    maxEnergy: 80
+    maxEnergy: 80,
+    weight: 90,
+    specialAttack: 12,
+    specialDefense: 8
   };
 
   useEffect(() => {
@@ -93,20 +99,23 @@ export const CombatTestScene: React.FC = () => {
 
     const combatOptions = {
       isRealTime: true,
-      criticalChance: 0.1,
       criticalMultiplier: 1.5,
-      maxEnergy: 100,
-      energyRegenRate: 20,
+      comboWindow: 2.0,
+      childFriendlyMode: true,
+      visualFeedbackIntensity: 1.0,
+      soundFeedbackIntensity: 1.0,
+      maxSimultaneousEffects: 10,
+      difficulty: 0.5,
+      tutorialMode: true,
       turnDuration: 5
     };
 
     const combatManager = new CombatManager(physicsEngine, combatOptions);
     targetingSystem.current = new TargetingSystem(sceneRef.current, combatManager);
     controls.current = new CombatControls(
-      camera, 
-      sceneRef.current, 
-      combatManager, 
-      targetingSystem.current,
+      sceneRef.current,
+      camera,
+      combatManager,
       'player'
     );
     const combatEffects = new CombatEffects(sceneRef.current);
@@ -154,7 +163,7 @@ export const CombatTestScene: React.FC = () => {
 
       // Update all systems
       combatManager.update(deltaTime);
-      controls.current?.update();
+      controls.current?.update(deltaTime);
       targetingSystem.current?.update(deltaTime);
       enemyAI.update(deltaTime);
       transformationManager.update(deltaTime);

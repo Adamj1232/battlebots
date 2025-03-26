@@ -18,7 +18,14 @@ const createDamageAbility = (
   damageType,
   energyCost,
   cooldown,
-  range
+  range,
+  type: 'attack',
+  effects: [],
+  visualEffect: 'damage_effect',
+  soundEffect: 'attack_sound',
+  targetType: 'enemy',
+  isChildFriendly: true,
+  warningDuration: 1000
 });
 
 const createStatusAbility = (
@@ -41,12 +48,18 @@ const createStatusAbility = (
   cooldown,
   range,
   duration,
+  type: 'support',
   effects: [{
     type: effectType,
     duration,
-    strength,
+    intensity: strength,
     source: id
-  }]
+  }],
+  visualEffect: 'status_effect',
+  soundEffect: 'ability_sound',
+  targetType: 'enemy',
+  isChildFriendly: true,
+  warningDuration: 1000
 });
 
 // Autobot Abilities
@@ -84,12 +97,18 @@ export const AutobotAbilities: Record<string, AbilityInfo> = {
     range: 0,
     damage: 0,
     damageType: 'status',
+    type: 'support',
     effects: [{
       type: 'heal',
       duration: 5000,
-      strength: 10,
+      intensity: 10,
       source: 'repairProtocol'
-    }]
+    }],
+    visualEffect: 'heal_effect',
+    soundEffect: 'heal_sound',
+    targetType: 'self',
+    isChildFriendly: true,
+    warningDuration: 1000
   },
 
   speedBoost: createStatusAbility(
@@ -153,20 +172,26 @@ export const DecepticonAbilities: Record<string, AbilityInfo> = {
     duration: 6000,
     damage: 0,
     damageType: 'status',
+    type: 'support',
     effects: [
       {
         type: 'defense_boost',
         duration: 6000,
-        strength: -0.3,
+        intensity: -0.3,
         source: 'terrorField'
       },
       {
         type: 'attack_boost',
         duration: 6000,
-        strength: -0.2,
+        intensity: -0.2,
         source: 'terrorField'
       }
-    ]
+    ],
+    visualEffect: 'terror_effect',
+    soundEffect: 'terror_sound',
+    targetType: 'area',
+    isChildFriendly: true,
+    warningDuration: 1000
   }
 };
 

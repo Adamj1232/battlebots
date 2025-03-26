@@ -111,7 +111,10 @@ export class EnemyAI {
       data: { 
         isMelee: state.currentBehavior === 'aggressive',
         attackType: state.currentBehavior === 'ranged' ? 'ranged' : 'melee'
-      }
+      },
+      timestamp: Date.now(),
+      isChildFriendly: true,
+      warningDuration: this.ATTACK_WARNING_DURATION
     });
   }
 
@@ -233,7 +236,10 @@ export class EnemyAI {
       target: targetId,
       position: this.scene.getObjectByName(enemyId)?.position || new Vector3(),
       direction: new Vector3(0, 1, 0),
-      data: { abilityId }
+      data: { abilityId },
+      timestamp: Date.now(),
+      isChildFriendly: true,
+      warningDuration: this.ATTACK_WARNING_DURATION
     });
   }
 

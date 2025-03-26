@@ -18,11 +18,15 @@ export class CombatTester {
     const physicsEngine = new PhysicsEngine(PhysicsConfig.getDefault());
     const combatOptions: CombatOptions = {
       isRealTime: true,
-      criticalChance: 0.1,
+      turnDuration: 5,
       criticalMultiplier: 1.5,
-      maxEnergy: 100,
-      energyRegenRate: 20,
-      turnDuration: 5
+      comboWindow: 2.0,
+      childFriendlyMode: true,
+      visualFeedbackIntensity: 1.0,
+      soundFeedbackIntensity: 1.0,
+      maxSimultaneousEffects: 10,
+      difficulty: 0.5,
+      tutorialMode: true
     };
     this.combatManager = new CombatManager(physicsEngine, combatOptions);
   }
@@ -51,7 +55,10 @@ export class CombatTester {
         defense: 10,
         speed: 5,
         energy: 100,
-        maxEnergy: 100
+        maxEnergy: 100,
+        weight: 100,
+        specialAttack: 15,
+        specialDefense: 10
       });
 
       const defender = this.setupTestCombatant('defender', {
@@ -61,7 +68,10 @@ export class CombatTester {
         defense: 15,
         speed: 4,
         energy: 100,
-        maxEnergy: 100
+        maxEnergy: 100,
+        weight: 100,
+        specialAttack: 10,
+        specialDefense: 15
       });
 
       // Test basic attack
@@ -71,7 +81,10 @@ export class CombatTester {
         target: 'defender',
         position: new THREE.Vector3(),
         direction: new THREE.Vector3(0, 1, 0),
-        data: { isMelee: true }
+        data: { isMelee: true },
+        timestamp: Date.now(),
+        isChildFriendly: true,
+        warningDuration: 1000
       });
 
       const defenderState = this.combatManager.getParticipant('defender');
@@ -109,7 +122,10 @@ export class CombatTester {
           defense: 10,
           speed: 5,
           energy: 100,
-          maxEnergy: 100
+          maxEnergy: 100,
+          weight: 100,
+          specialAttack: 15,
+          specialDefense: 10
         },
         getAbilities('autobot', 'robot')
       );
@@ -121,7 +137,10 @@ export class CombatTester {
         defense: 15,
         speed: 4,
         energy: 100,
-        maxEnergy: 100
+        maxEnergy: 100,
+        weight: 100,
+        specialAttack: 10,
+        specialDefense: 15
       });
 
       // Get initial energy
@@ -136,7 +155,10 @@ export class CombatTester {
         target: 'defender',
         position: new THREE.Vector3(),
         direction: new THREE.Vector3(0, 1, 0),
-        data: { abilityId: ability.id }
+        data: { abilityId: ability.id },
+        timestamp: Date.now(),
+        isChildFriendly: true,
+        warningDuration: 1000
       });
 
       // Verify energy cost
@@ -175,7 +197,10 @@ export class CombatTester {
         defense: 10,
         speed: 5,
         energy: 100,
-        maxEnergy: 100
+        maxEnergy: 100,
+        weight: 100,
+        specialAttack: 15,
+        specialDefense: 10
       });
 
       // Apply status effect
@@ -183,7 +208,7 @@ export class CombatTester {
       this.combatManager.applyStatusEffect('target', {
         type: 'slow',
         duration: effectDuration,
-        strength: 0.5,
+        intensity: 0.5,
         source: 'test'
       });
 
@@ -231,7 +256,10 @@ export class CombatTester {
         defense: 10,
         speed: 5,
         energy: 50,
-        maxEnergy: 100
+        maxEnergy: 100,
+        weight: 100,
+        specialAttack: 15,
+        specialDefense: 10
       });
 
       // Get initial state
@@ -298,7 +326,10 @@ export class CombatTester {
           defense: 10,
           speed: 5,
           energy: 100,
-          maxEnergy: 100
+          maxEnergy: 100,
+          weight: 100,
+          specialAttack: 15,
+          specialDefense: 10
         });
 
         const defender = this.setupTestCombatant('defender', {
@@ -308,7 +339,10 @@ export class CombatTester {
           defense: testCase.defense,
           speed: 4,
           energy: 100,
-          maxEnergy: 100
+          maxEnergy: 100,
+          weight: 100,
+          specialAttack: 10,
+          specialDefense: 15
         });
 
         this.combatManager.submitAction({
@@ -317,7 +351,10 @@ export class CombatTester {
           target: 'defender',
           position: new THREE.Vector3(),
           direction: new THREE.Vector3(0, 1, 0),
-          data: { isMelee: true }
+          data: { isMelee: true },
+          timestamp: Date.now(),
+          isChildFriendly: true,
+          warningDuration: 1000
         });
 
         const defenderState = this.combatManager.getParticipant('defender');
@@ -358,7 +395,10 @@ export class CombatTester {
           defense: 10,
           speed: 5,
           energy: 100,
-          maxEnergy: 100
+          maxEnergy: 100,
+          weight: 100,
+          specialAttack: 15,
+          specialDefense: 10
         },
         getAbilities('autobot', 'robot')
       );
@@ -371,7 +411,10 @@ export class CombatTester {
         target: 'defender',
         position: new THREE.Vector3(),
         direction: new THREE.Vector3(0, 1, 0),
-        data: { abilityId: ability.id }
+        data: { abilityId: ability.id },
+        timestamp: Date.now(),
+        isChildFriendly: true,
+        warningDuration: 1000
       });
 
       // Try to use ability again immediately
@@ -381,7 +424,10 @@ export class CombatTester {
         target: 'defender',
         position: new THREE.Vector3(),
         direction: new THREE.Vector3(0, 1, 0),
-        data: { abilityId: ability.id }
+        data: { abilityId: ability.id },
+        timestamp: Date.now(),
+        isChildFriendly: true,
+        warningDuration: 1000
       });
 
       // Wait for cooldown
@@ -394,7 +440,10 @@ export class CombatTester {
         target: 'defender',
         position: new THREE.Vector3(),
         direction: new THREE.Vector3(0, 1, 0),
-        data: { abilityId: ability.id }
+        data: { abilityId: ability.id },
+        timestamp: Date.now(),
+        isChildFriendly: true,
+        warningDuration: 1000
       });
 
       return {

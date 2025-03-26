@@ -61,7 +61,8 @@ export class TransformationManager {
       type: 'transform',
       source: id,
       position: object.position,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      isChildFriendly: true
     });
 
     // Play transformation animation
