@@ -1,56 +1,57 @@
 import React from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import { RootState } from '../../state/store';
-import { updateRobotColors } from '../../state/slices/playerSlice';
+import { Color } from 'three';
 import '../../styles/ColorCustomizer.css';
 
-export const ColorCustomizer: React.FC = () => {
-  const dispatch = useDispatch();
-  const robot = useSelector((state: RootState) => state.player.robot);
+interface ColorCustomizerProps {
+  primaryColor: Color;
+  secondaryColor: Color;
+  onPrimaryColorChange: (color: Color) => void;
+  onSecondaryColorChange: (color: Color) => void;
+}
 
-  const handleColorChange = (type: 'primary' | 'secondary' | 'accent', color: string) => {
-    if (!robot) return;
-    dispatch(updateRobotColors({ [type]: color }));
-  };
-
-  if (!robot) return null;
+export const ColorCustomizer: React.FC<ColorCustomizerProps> = ({
+  primaryColor,
+  secondaryColor,
+  onPrimaryColorChange,
+  onSecondaryColorChange
+}) => {
+  const colorToHex = (color: Color) => '#' + color.getHexString();
+  const hexToColor = (hex: string) => new Color(hex);
 
   return (
     <div className="color-customizer">
-      <h3>Color Scheme</h3>
-      <div className="color-inputs">
+      <h3 className="text-lg font-bold mb-4">Color Scheme</h3>
+      <div className="space-y-4">
         <div className="color-input">
-          <label htmlFor="primary-color">Primary Color</label>
-          <input
-            type="color"
-            id="primary-color"
-            value={robot.colors.primary}
-            onChange={(e) => handleColorChange('primary', e.target.value)}
-          />
+          <label htmlFor="primary-color" className="block text-sm font-medium mb-2">
+            Primary Color
+          </label>
+          <div className="flex items-center gap-4">
+            <input
+              type="color"
+              id="primary-color"
+              value={colorToHex(primaryColor)}
+              onChange={(e) => onPrimaryColorChange(hexToColor(e.target.value))}
+              className="w-12 h-12 rounded cursor-pointer"
+            />
+            <div className="preview-box w-12 h-12 rounded" style={{ backgroundColor: colorToHex(primaryColor) }} />
+          </div>
         </div>
         <div className="color-input">
-          <label htmlFor="secondary-color">Secondary Color</label>
-          <input
-            type="color"
-            id="secondary-color"
-            value={robot.colors.secondary}
-            onChange={(e) => handleColorChange('secondary', e.target.value)}
-          />
+          <label htmlFor="secondary-color" className="block text-sm font-medium mb-2">
+            Secondary Color
+          </label>
+          <div className="flex items-center gap-4">
+            <input
+              type="color"
+              id="secondary-color"
+              value={colorToHex(secondaryColor)}
+              onChange={(e) => onSecondaryColorChange(hexToColor(e.target.value))}
+              className="w-12 h-12 rounded cursor-pointer"
+            />
+            <div className="preview-box w-12 h-12 rounded" style={{ backgroundColor: colorToHex(secondaryColor) }} />
+          </div>
         </div>
-        <div className="color-input">
-          <label htmlFor="accent-color">Accent Color</label>
-          <input
-            type="color"
-            id="accent-color"
-            value={robot.colors.accent}
-            onChange={(e) => handleColorChange('accent', e.target.value)}
-          />
-        </div>
-      </div>
-      <div className="color-preview">
-        <div className="preview-box" style={{ backgroundColor: robot.colors.primary }} />
-        <div className="preview-box" style={{ backgroundColor: robot.colors.secondary }} />
-        <div className="preview-box" style={{ backgroundColor: robot.colors.accent }} />
       </div>
     </div>
   );

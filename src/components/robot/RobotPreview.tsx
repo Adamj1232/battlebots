@@ -1,25 +1,31 @@
 import React, { useEffect, useRef } from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../state/store';
 import * as THREE from 'three';
-import { RobotAssembly } from '../../game/entities/RobotAssembly';
-import { Robot } from '../../types/Robot';
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
 import '../../styles/RobotPreview.css';
 
-export const RobotPreview: React.FC = () => {
-  const robot = useSelector((state: RootState) => state.player.robot);
+interface RobotPreviewProps {
+  scene?: THREE.Scene;
+  onRotate?: (x: number, y: number) => void;
+}
+
+export const RobotPreview: React.FC<RobotPreviewProps> = ({ scene, onRotate }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const sceneRef = useRef<THREE.Scene>();
   const cameraRef = useRef<THREE.PerspectiveCamera>();
   const rendererRef = useRef<THREE.WebGLRenderer>();
-  const robotAssemblyRef = useRef<RobotAssembly>();
+  const controlsRef = useRef<OrbitControls>();
+  const localSceneRef = useRef<THREE.Scene>();
 
   useEffect(() => {
-    if (!containerRef.current || !robot) return;
+    if (!containerRef.current) return;
 
-    // Initialize scene
-    sceneRef.current = new THREE.Scene();
-    sceneRef.current.background = new THREE.Color(0x1a1a1a);
+    // Initialize scene if not provided
+    if (!scene) {
+      localSceneRef.current = new THREE.Scene();
+      localSceneRef.current.background = new THREE.Color(0x1a1a1a);
+    }
+
+    const activeScene = scene || localSceneRef.current;
+    if (!activeScene) return;
 
     // Initialize camera
     const aspect = containerRef.current.clientWidth / containerRef.current.clientHeight;
@@ -32,23 +38,39 @@ export const RobotPreview: React.FC = () => {
     rendererRef.current.setPixelRatio(window.devicePixelRatio);
     containerRef.current.appendChild(rendererRef.current.domElement);
 
-    // Add lights
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-    sceneRef.current.add(ambientLight);
+    // Initialize orbit controls
+    if (cameraRef.current && rendererRef.current) {
+      controlsRef.current = new OrbitControls(cameraRef.current, rendererRef.current.domElement);
+      controlsRef.current.enableDamping = true;
+      controlsRef.current.dampingFactor = 0.05;
+      controlsRef.current.minDistance = 5;
+      controlsRef.current.maxDistance = 15;
+      
+      if (onRotate) {
+        controlsRef.current.addEventListener('change', () => {
+          const rotation = new THREE.Euler().setFromQuaternion(cameraRef.current!.quaternion);
+          onRotate(rotation.x, rotation.y);
+        });
+      }
+    }
 
-    const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
-    directionalLight.position.set(5, 5, 5);
-    sceneRef.current.add(directionalLight);
+    // Add lights if using local scene
+    if (!scene && localSceneRef.current) {
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
+      localSceneRef.current.add(ambientLight);
 
-    // Initialize robot assembly
-    robotAssemblyRef.current = new RobotAssembly(sceneRef.current, robot);
+      const directionalLight = new THREE.DirectionalLight(0xffffff, 0.8);
+      directionalLight.position.set(5, 5, 5);
+      localSceneRef.current.add(directionalLight);
+    }
 
     // Animation loop
     const animate = () => {
-      if (!sceneRef.current || !cameraRef.current || !rendererRef.current) return;
+      if (!activeScene || !cameraRef.current || !rendererRef.current) return;
 
       requestAnimationFrame(animate);
-      rendererRef.current.render(sceneRef.current, cameraRef.current);
+      controlsRef.current?.update();
+      rendererRef.current.render(activeScene, cameraRef.current);
     };
     animate();
 
@@ -64,23 +86,14 @@ export const RobotPreview: React.FC = () => {
     window.addEventListener('resize', handleResize);
 
     return () => {
-      if (robotAssemblyRef.current) {
-        robotAssemblyRef.current.dispose();
-      }
       if (rendererRef.current && containerRef.current) {
         containerRef.current.removeChild(rendererRef.current.domElement);
         rendererRef.current.dispose();
       }
+      controlsRef.current?.dispose();
       window.removeEventListener('resize', handleResize);
     };
-  }, [robot]);
-
-  // Update colors when they change
-  useEffect(() => {
-    if (robotAssemblyRef.current && robot) {
-      robotAssemblyRef.current.updateColors();
-    }
-  }, [robot?.colors]);
+  }, [scene, onRotate]);
 
   return <div ref={containerRef} className="robot-preview" />;
 }; 

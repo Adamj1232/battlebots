@@ -15,9 +15,11 @@
     "state_management": "Redux for global state, React context for UI states",
     "asset_loading": "Progressive loading with preloaded essential assets",
     "world_structure": "Zone-based city environment with dynamic loading",
-    "battle_system": "Turn-based combat with real-time elements",
     "special_abilities": "Cooldown-based system with faction specializations",
-    "enemy_ai": "Behavior tree implementation with difficulty scaling"
+    "enemy_ai": "Behavior tree implementation with difficulty scaling",
+    "robot_system": "Primitive-based procedural generation",
+    "battle_system": "Real-time combat with primitive-based robots",
+    "customization": "Parameter-based robot customization"
   },
   "priorities": [
     "Physics stability and performance",
@@ -28,6 +30,9 @@
     "Clear visual feedback for all actions",
     "Balanced difficulty appropriate for ages 7-10",
     "Engaging special abilities and transformations",
-    "Performant effects even during intense battles"
+    "Performant effects even during intense battles",
+    "Performance optimization for browser environments",
+    "Consistent design language across robot parts",
+    "Exciting visual effects appropriate for primitive aesthetics"
   ]
 }

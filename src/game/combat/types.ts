@@ -150,4 +150,32 @@ export interface Ability {
   targetType: 'enemy' | 'self' | 'area';
   range: number;
   areaOfEffect?: number;
+}
+
+export enum TargetType {
+  Robot = 'robot',
+  Environment = 'environment',
+  Projectile = 'projectile'
+}
+
+export interface HitInfo {
+  point: THREE.Vector3;
+  normal: THREE.Vector3;
+  distance: number;
+  partName: string;
+  targetType: TargetType;
+}
+
+export interface DamageInfo {
+  partName: string;
+  amount: number;
+  type?: DamageType;
+  source?: string;
+}
+
+export interface CombatTarget {
+  type: TargetType;
+  position: THREE.Vector3;
+  part?: string;
+  object: THREE.Object3D;
 } 

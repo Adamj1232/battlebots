@@ -1,4 +1,7 @@
 import { EventEmitter } from 'events';
+import { Raycaster } from 'three';
+import { PrimitiveRobot } from '../robots/PrimitiveRobot';
+import { PrimitiveCombatAdapter } from './adapters/PrimitiveCombatAdapter';
 import { PhysicsEngine } from '../physics/PhysicsEngine';
 import {
   CombatState,
@@ -8,7 +11,10 @@ import {
   CombatOptions,
   StatusEffect,
   CombatStats,
-  AbilityInfo
+  AbilityInfo,
+  CombatTarget,
+  DamageInfo,
+  HitInfo
 } from './types';
 import * as THREE from 'three';
 
@@ -20,6 +26,8 @@ export class CombatManager extends EventEmitter {
   private isCombatActive: boolean = false;
   private currentTurn: number = 0;
   private lastUpdateTime: number = 0;
+  private robots: Map<string, PrimitiveRobot> = new Map();
+  private combatAdapters: Map<string, PrimitiveCombatAdapter> = new Map();
 
   constructor(physicsEngine: PhysicsEngine, options: CombatOptions) {
     super();
@@ -317,5 +325,47 @@ export class CombatManager extends EventEmitter {
     if (target) {
       target.activeEffects.push(effect);
     }
+  }
+
+  public registerRobot(id: string, robot: PrimitiveRobot): void {
+    this.robots.set(id, robot);
+    this.combatAdapters.set(id, new PrimitiveCombatAdapter(robot));
+  }
+
+  public unregisterRobot(id: string): void {
+    this.robots.delete(id);
+    this.combatAdapters.delete(id);
+  }
+
+  private getAdapter(id: string): PrimitiveCombatAdapter {
+    const adapter = this.combatAdapters.get(id);
+    if (!adapter) {
+      throw new Error(`No combat adapter found for robot: ${id}`);
+    }
+    return adapter;
+  }
+
+  public checkHit(id: string, raycaster: Raycaster): HitInfo | null {
+    return this.getAdapter(id).checkHit(raycaster);
+  }
+
+  public highlightPart(id: string, partName: string): void {
+    this.getAdapter(id).highlightPart(partName);
+  }
+
+  public clearHighlight(id: string, partName: string): void {
+    this.getAdapter(id).clearHighlight(partName);
+  }
+
+  public applyDamage(id: string, info: DamageInfo): void {
+    this.getAdapter(id).applyDamage(info);
+  }
+
+  public getTargetInfo(id: string, partName: string): CombatTarget {
+    return this.getAdapter(id).getTargetInfo(partName);
+  }
+
+  public playAnimation(id: string, type: string, partName?: string): void {
+    this.getAdapter(id).playAnimation(type, partName);
   }
 } 

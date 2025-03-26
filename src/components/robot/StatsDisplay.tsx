@@ -1,7 +1,5 @@
 import React from 'react';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../state/store';
-import { Robot } from '../../types/Robot';
+import { RobotConfig } from '../../game/robots/types';
 import '../../styles/StatsDisplay.css';
 
 interface RobotStats {
@@ -12,81 +10,80 @@ interface RobotStats {
   speed: number;
 }
 
-const calculateTotalStats = (robot: Robot | null): RobotStats => {
-  if (!robot) {
-    return {
-      health: 0,
-      energy: 0,
-      strength: 0,
-      defense: 0,
-      speed: 0
-    };
-  }
+interface StatsDisplayProps {
+  config: RobotConfig;
+}
 
-  const totalStats: RobotStats = {
-    health: 0,
-    energy: 0,
-    strength: 0,
-    defense: 0,
-    speed: 0
+const calculateTotalStats = (config: RobotConfig): RobotStats => {
+  // For now, return mock stats based on the number of parts
+  // In a real implementation, this would calculate based on actual part stats
+  const partCount = Object.values(config.parts).filter(Boolean).length;
+  
+  return {
+    health: partCount * 20,
+    energy: partCount * 15,
+    strength: partCount * 18,
+    defense: partCount * 16,
+    speed: partCount * 14
   };
-
-  // Sum up stats from all parts
-  Object.values(robot.parts).forEach(part => {
-    if (part) {
-      totalStats.health += part.stats.health;
-      totalStats.energy += part.stats.energy;
-      totalStats.strength += part.stats.strength;
-      totalStats.defense += part.stats.defense;
-      totalStats.speed += part.stats.speed;
-    }
-  });
-
-  return totalStats;
 };
 
-export const StatsDisplay: React.FC = () => {
-  const robot = useSelector((state: RootState) => state.player.robot);
-  const totalStats = calculateTotalStats(robot);
+export const StatsDisplay: React.FC<StatsDisplayProps> = ({ config }) => {
+  const totalStats = calculateTotalStats(config);
 
   return (
     <div className="stats-display">
-      <h3>Total Stats</h3>
-      <div className="stats-grid">
+      <h3 className="text-lg font-bold mb-4">Total Stats</h3>
+      <div className="grid grid-cols-2 gap-4">
         <div className="stat">
-          <label>Health</label>
-          <div className="stat-bar">
-            <div className="fill" style={{ width: `${totalStats.health / 4}%` }}></div>
-            <span className="value">{totalStats.health}</span>
+          <label className="block text-sm font-medium mb-1">Health</label>
+          <div className="h-2 bg-gray-700 rounded overflow-hidden">
+            <div
+              className="h-full bg-red-500 transition-all"
+              style={{ width: `${Math.min(100, totalStats.health / 2)}%` }}
+            />
           </div>
+          <span className="text-sm mt-1">{totalStats.health}</span>
         </div>
         <div className="stat">
-          <label>Energy</label>
-          <div className="stat-bar">
-            <div className="fill" style={{ width: `${totalStats.energy / 4}%` }}></div>
-            <span className="value">{totalStats.energy}</span>
+          <label className="block text-sm font-medium mb-1">Energy</label>
+          <div className="h-2 bg-gray-700 rounded overflow-hidden">
+            <div
+              className="h-full bg-blue-500 transition-all"
+              style={{ width: `${Math.min(100, totalStats.energy / 2)}%` }}
+            />
           </div>
+          <span className="text-sm mt-1">{totalStats.energy}</span>
         </div>
         <div className="stat">
-          <label>Strength</label>
-          <div className="stat-bar">
-            <div className="fill" style={{ width: `${totalStats.strength / 4}%` }}></div>
-            <span className="value">{totalStats.strength}</span>
+          <label className="block text-sm font-medium mb-1">Strength</label>
+          <div className="h-2 bg-gray-700 rounded overflow-hidden">
+            <div
+              className="h-full bg-yellow-500 transition-all"
+              style={{ width: `${Math.min(100, totalStats.strength / 2)}%` }}
+            />
           </div>
+          <span className="text-sm mt-1">{totalStats.strength}</span>
         </div>
         <div className="stat">
-          <label>Defense</label>
-          <div className="stat-bar">
-            <div className="fill" style={{ width: `${totalStats.defense / 4}%` }}></div>
-            <span className="value">{totalStats.defense}</span>
+          <label className="block text-sm font-medium mb-1">Defense</label>
+          <div className="h-2 bg-gray-700 rounded overflow-hidden">
+            <div
+              className="h-full bg-green-500 transition-all"
+              style={{ width: `${Math.min(100, totalStats.defense / 2)}%` }}
+            />
           </div>
+          <span className="text-sm mt-1">{totalStats.defense}</span>
         </div>
         <div className="stat">
-          <label>Speed</label>
-          <div className="stat-bar">
-            <div className="fill" style={{ width: `${totalStats.speed / 4}%` }}></div>
-            <span className="value">{totalStats.speed}</span>
+          <label className="block text-sm font-medium mb-1">Speed</label>
+          <div className="h-2 bg-gray-700 rounded overflow-hidden">
+            <div
+              className="h-full bg-purple-500 transition-all"
+              style={{ width: `${Math.min(100, totalStats.speed / 2)}%` }}
+            />
           </div>
+          <span className="text-sm mt-1">{totalStats.speed}</span>
         </div>
       </div>
     </div>
