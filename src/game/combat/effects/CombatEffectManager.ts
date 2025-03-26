@@ -1,25 +1,23 @@
-import { Vector3 } from 'three';
-import { EffectPool } from './EffectPool.js';
-import { EffectType, CombatEffect } from './types.js';
-import { ImpactEffectPool } from './ImpactEffectPool.js';
+import { Scene, Vector3 } from 'three';
+import { EffectType, CombatEffect, EffectPool } from './types';
+import { ImpactEffectPool } from './ImpactEffectPool';
 
 export class CombatEffectManager {
   private static instance: CombatEffectManager;
-  private effectPools: Map<EffectType, EffectPool>;
-  private activeEffects: Set<CombatEffect>;
-  private maxActiveEffects: number;
+  private scene: Scene;
+  private effectPools: Map<EffectType, EffectPool> = new Map();
+  private activeEffects: Set<CombatEffect> = new Set();
+  private maxActiveEffects: number = 50;
   private devicePerformance: 'high' | 'medium' | 'low' = 'medium';
 
-  private constructor() {
-    this.effectPools = new Map();
-    this.activeEffects = new Set();
-    this.maxActiveEffects = this.detectDevicePerformance();
+  private constructor(scene: Scene) {
+    this.scene = scene;
     this.initializeEffectPools();
   }
 
-  public static getInstance(): CombatEffectManager {
-    if (!CombatEffectManager.instance) {
-      CombatEffectManager.instance = new CombatEffectManager();
+  public static getInstance(scene?: Scene): CombatEffectManager {
+    if (!CombatEffectManager.instance && scene) {
+      CombatEffectManager.instance = new CombatEffectManager(scene);
     }
     return CombatEffectManager.instance;
   }
@@ -111,6 +109,7 @@ export class CombatEffectManager {
     if (!effect) return null;
 
     effect.initialize(position, options);
+    this.scene.add(effect.getObject());
     this.activeEffects.add(effect);
     return effect;
   }
@@ -125,6 +124,7 @@ export class CombatEffectManager {
   }
 
   private recycleEffect(effect: CombatEffect): void {
+    this.scene.remove(effect.getObject());
     this.activeEffects.delete(effect);
     const pool = this.effectPools.get(effect.type);
     if (pool) {
@@ -134,5 +134,9 @@ export class CombatEffectManager {
 
   public clear(): void {
     this.activeEffects.forEach(effect => this.recycleEffect(effect));
+  }
+
+  public getActiveEffectCount(): number {
+    return this.activeEffects.size;
   }
 } 

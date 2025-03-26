@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { Scene, PerspectiveCamera, WebGLRenderer, AmbientLight, DirectionalLight } from 'three';
+import { Scene, PerspectiveCamera, WebGLRenderer, AmbientLight, DirectionalLight, Vector3 } from 'three';
 import { CombatManager } from '../CombatManager';
 import { CombatEffects } from '../CombatEffects';
 import { CombatControls } from '../CombatControls';
 import { EnemyAI } from '../EnemyAI';
 import { TransformationManager } from '../TransformationManager';
+import { TargetingSystem } from '../targeting/TargetingSystem';
 import { CombatUI } from '../ui/CombatUI';
 import { FloatingTextManager } from '../ui/FloatingText';
 import { getAbilities } from '../abilities';
@@ -20,7 +21,8 @@ export const CombatTestScene: React.FC = () => {
   // Combat system references
   const combatManagerRef = useRef<CombatManager>();
   const combatEffectsRef = useRef<CombatEffects>();
-  const combatControlsRef = useRef<CombatControls>();
+  const targetingSystem = useRef<TargetingSystem | null>(null);
+  const controls = useRef<CombatControls | null>(null);
   const enemyAIRef = useRef<EnemyAI>();
   const transformationManagerRef = useRef<TransformationManager>();
 
@@ -54,14 +56,15 @@ export const CombatTestScene: React.FC = () => {
 
     // Camera
     const camera = new PerspectiveCamera(75, width / height, 0.1, 1000);
-    camera.position.set(0, 5, 10);
+    camera.position.set(0, 10, 20);
     camera.lookAt(0, 0, 0);
     cameraRef.current = camera;
 
     // Renderer
     const renderer = new WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
-    renderer.setClearColor(0x87ceeb); // Sky blue
+    renderer.setClearColor(0x000000);
+    renderer.shadowMap.enabled = true;
     containerRef.current.appendChild(renderer.domElement);
     rendererRef.current = renderer;
 
@@ -70,7 +73,8 @@ export const CombatTestScene: React.FC = () => {
     sceneRef.current.add(ambientLight);
 
     const directionalLight = new DirectionalLight(0xffffff, 1);
-    directionalLight.position.set(5, 5, 5);
+    directionalLight.position.set(5, 10, 5);
+    directionalLight.castShadow = true;
     sceneRef.current.add(directionalLight);
 
     // Initialize combat systems
@@ -86,15 +90,25 @@ export const CombatTestScene: React.FC = () => {
       },
       allowSleep: true
     });
+
     const combatOptions = {
       isRealTime: true,
       criticalChance: 0.1,
       criticalMultiplier: 1.5,
       maxEnergy: 100,
       energyRegenRate: 20,
-      turnDuration: 5 // 5 seconds per turn
+      turnDuration: 5
     };
+
     const combatManager = new CombatManager(physicsEngine, combatOptions);
+    targetingSystem.current = new TargetingSystem(sceneRef.current, combatManager);
+    controls.current = new CombatControls(
+      camera, 
+      sceneRef.current, 
+      combatManager, 
+      targetingSystem.current,
+      'player'
+    );
     const combatEffects = new CombatEffects(sceneRef.current);
     const transformationManager = new TransformationManager(
       sceneRef.current,
@@ -118,14 +132,7 @@ export const CombatTestScene: React.FC = () => {
     );
     transformationManager.registerTransformable('enemy', 'robot');
 
-    // Initialize controls and AI
-    const combatControls = new CombatControls(
-      camera,
-      sceneRef.current,
-      combatManager,
-      'player'
-    );
-
+    // Initialize enemy AI
     const enemyAI = new EnemyAI(
       sceneRef.current,
       combatManager,
@@ -136,7 +143,6 @@ export const CombatTestScene: React.FC = () => {
     // Store refs
     combatManagerRef.current = combatManager;
     combatEffectsRef.current = combatEffects;
-    combatControlsRef.current = combatControls;
     enemyAIRef.current = enemyAI;
     transformationManagerRef.current = transformationManager;
 
@@ -148,7 +154,8 @@ export const CombatTestScene: React.FC = () => {
 
       // Update all systems
       combatManager.update(deltaTime);
-      combatControls.update();
+      controls.current?.update();
+      targetingSystem.current?.update(deltaTime);
       enemyAI.update(deltaTime);
       transformationManager.update(deltaTime);
 
@@ -161,6 +168,9 @@ export const CombatTestScene: React.FC = () => {
     // Cleanup
     return () => {
       renderer.dispose();
+      if (targetingSystem.current) {
+        targetingSystem.current.dispose();
+      }
       containerRef.current?.removeChild(renderer.domElement);
     };
   }, []);

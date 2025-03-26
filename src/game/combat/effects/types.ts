@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { Vector3, Object3D } from 'three';
 
 export enum EffectType {
   IMPACT = 'impact',
@@ -22,14 +23,19 @@ export interface EffectOptions {
 
 export interface CombatEffect {
   type: EffectType;
-  position: THREE.Vector3;
+  position: Vector3;
   options: EffectOptions;
   isActive: boolean;
   timeAlive: number;
-  
-  initialize(position: THREE.Vector3, options: EffectOptions): void;
-  update(deltaTime: number): void;
   isComplete(): boolean;
+  initialize(position: Vector3, options?: any): void;
+  update(deltaTime: number): void;
   dispose(): void;
-  getObject(): THREE.Object3D;
+  getObject(): Object3D;
+}
+
+export interface EffectPool {
+  acquire(): CombatEffect | null;
+  release(effect: CombatEffect): void;
+  dispose(): void;
 } 

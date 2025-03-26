@@ -8,6 +8,8 @@ interface AIState {
   lastPositionChange: number;
   currentBehavior: 'aggressive' | 'defensive' | 'ranged';
   isRetreating: boolean;
+  isPreparingAttack: boolean;
+  attackWarningTime: number;
 }
 
 export class EnemyAI {
@@ -15,6 +17,7 @@ export class EnemyAI {
   private scene: Object3D;
   private enemies: Map<string, AIState> = new Map();
   private difficulty: number; // 0-1 scale
+  private readonly ATTACK_WARNING_DURATION = 2.0; // seconds
 
   constructor(scene: Object3D, combatManager: CombatManager, difficulty: number = 0.5) {
     this.scene = scene;
@@ -27,7 +30,9 @@ export class EnemyAI {
       lastActionTime: 0,
       lastPositionChange: 0,
       currentBehavior: 'aggressive',
-      isRetreating: false
+      isRetreating: false,
+      isPreparingAttack: false,
+      attackWarningTime: 0
     });
   }
 
@@ -35,6 +40,16 @@ export class EnemyAI {
     const now = Date.now();
 
     Array.from(this.enemies.entries()).forEach(([enemyId, state]) => {
+      // Update attack warning timers
+      if (state.isPreparingAttack) {
+        state.attackWarningTime -= deltaTime;
+        if (state.attackWarningTime <= 0) {
+          this.executeAttack(enemyId, state);
+          state.isPreparingAttack = false;
+        }
+        return; // Skip other actions while preparing attack
+      }
+
       // Skip if not enough time has passed since last action
       // Higher difficulty = faster actions
       const minActionDelay = 2000 - (this.difficulty * 1000);
@@ -60,6 +75,43 @@ export class EnemyAI {
       }
 
       state.lastActionTime = now;
+    });
+  }
+
+  private prepareAttack(enemyId: string, targetId: string, attackType: string, position: Vector3): void {
+    const state = this.enemies.get(enemyId);
+    if (!state) return;
+
+    state.isPreparingAttack = true;
+    state.attackWarningTime = this.ATTACK_WARNING_DURATION;
+
+    // Emit warning event
+    this.combatManager.emit('enemyAttackStart', {
+      enemyId,
+      targetId,
+      attackType,
+      position
+    });
+  }
+
+  private executeAttack(enemyId: string, state: AIState): void {
+    const enemyObj = this.scene.getObjectByName(enemyId);
+    if (!enemyObj || !state.currentTarget) return;
+
+    const targetObj = this.scene.getObjectByName(state.currentTarget);
+    if (!targetObj) return;
+
+    // Execute the actual attack
+    this.combatManager.submitAction({
+      type: 'attack',
+      source: enemyId,
+      target: state.currentTarget,
+      position: enemyObj.position,
+      direction: targetObj.position.clone().sub(enemyObj.position).normalize(),
+      data: { 
+        isMelee: state.currentBehavior === 'aggressive',
+        attackType: state.currentBehavior === 'ranged' ? 'ranged' : 'melee'
+      }
     });
   }
 
@@ -93,14 +145,7 @@ export class EnemyAI {
 
     // Attack if in range
     if (this.isInRange(enemyObj.position, target.position, 5)) {
-      this.combatManager.submitAction({
-        type: 'attack',
-        source: enemyId,
-        target: target.userData.combatId,
-        position: enemyObj.position,
-        direction: target.position.clone().sub(enemyObj.position).normalize(),
-        data: { isMelee: true }
-      });
+      this.prepareAttack(enemyId, target.userData.combatId, 'melee', enemyObj.position);
     }
 
     // Use abilities based on difficulty
@@ -122,14 +167,7 @@ export class EnemyAI {
 
     // Attack only if player is very close
     if (this.isInRange(enemyObj.position, target.position, 4)) {
-      this.combatManager.submitAction({
-        type: 'attack',
-        source: enemyId,
-        target: target.userData.combatId,
-        position: enemyObj.position,
-        direction: target.position.clone().sub(enemyObj.position).normalize(),
-        data: { isMelee: true }
-      });
+      this.prepareAttack(enemyId, target.userData.combatId, 'melee', enemyObj.position);
     }
   }
 
@@ -149,14 +187,7 @@ export class EnemyAI {
 
     // Perform ranged attacks
     if (this.isInRange(enemyObj.position, target.position, 15)) {
-      this.combatManager.submitAction({
-        type: 'attack',
-        source: enemyId,
-        target: target.userData.combatId,
-        position: enemyObj.position,
-        direction: target.position.clone().sub(enemyObj.position).normalize(),
-        data: { isMelee: false }
-      });
+      this.prepareAttack(enemyId, target.userData.combatId, 'ranged', enemyObj.position);
     }
   }
 

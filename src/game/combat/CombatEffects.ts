@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { EventEmitter } from 'events';
-import { CombatEvent, CombatResult } from './types';
+import { CombatEvent } from './types';
 
 interface EffectOptions {
   particleCount: number;
