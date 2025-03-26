@@ -1,11 +1,9 @@
 import React, { useEffect, useRef } from 'react';
 import { Canvas } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { Box, Sphere, Cylinder } from '@react-three/drei';
 import { PhysicsEngine } from './PhysicsEngine';
 import { PhysicsBody } from './PhysicsBody';
 import { Vector3, Mesh } from 'three';
-import { PhysicsConfig } from './types';
 import * as THREE from 'three';
 
 export const PhysicsTest: React.FC = () => {
@@ -17,7 +15,7 @@ export const PhysicsTest: React.FC = () => {
 
   useEffect(() => {
     // Create physics configuration
-    const config = new PhysicsConfig({
+    const config = {
       gravity: new THREE.Vector3(0, -9.81, 0),
       solver: {
         iterations: 10,
@@ -28,7 +26,7 @@ export const PhysicsTest: React.FC = () => {
         tolerance: 0.1
       },
       allowSleep: true
-    });
+    };
 
     // Initialize physics engine
     physicsEngine.current = new PhysicsEngine(config);

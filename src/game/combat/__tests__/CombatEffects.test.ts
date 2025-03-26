@@ -137,7 +137,8 @@ describe('CombatEffects', () => {
       type: 'damage',
       source: 'test-bot',
       position,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      isChildFriendly: true
     });
 
     expect(scene.children.length).toBe(1);
@@ -156,7 +157,8 @@ describe('CombatEffects', () => {
       type: 'ability',
       source: 'test-bot',
       position,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      isChildFriendly: true
     });
 
     expect(scene.children.length).toBe(1);
@@ -181,7 +183,8 @@ describe('CombatEffects', () => {
         strength: 1,
         source: 'test-bot'
       },
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      isChildFriendly: true
     });
 
     expect(scene.children.length).toBe(1);
@@ -200,7 +203,8 @@ describe('CombatEffects', () => {
       type: 'transform',
       source: 'test-bot',
       position,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      isChildFriendly: true
     });
 
     expect(scene.children.length).toBe(1);
@@ -219,7 +223,8 @@ describe('CombatEffects', () => {
       type: 'damage',
       source: 'test-bot',
       position,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      isChildFriendly: true
     });
 
     expect(scene.children.length).toBe(1);
@@ -239,7 +244,8 @@ describe('CombatEffects', () => {
       type: 'damage',
       source: 'test-bot',
       position,
-      timestamp: Date.now()
+      timestamp: Date.now(),
+      isChildFriendly: true
     });
 
     effects.dispose();

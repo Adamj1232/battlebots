@@ -1,57 +1,109 @@
 import * as CANNON from 'cannon-es';
-import { PhysicsConfig } from './types';
+import { Object3D, Vector3, Euler } from 'three';
+import { PhysicsConfig, PhysicsConfigOptions } from './types';
 
 export class PhysicsEngine {
-  private world: CANNON.World;
-  private bodies: Map<string, THREE.Object3D> = new Map();
+  private world: any; // Physics world instance
+  private bodies: Map<string, any> = new Map();
+  private constraints: Map<string, any> = new Map();
 
-  constructor(config: PhysicsConfig) {
-    this.world = new CANNON.World();
-    this.world.gravity.set(config.gravity.x, config.gravity.y, config.gravity.z);
-
-    // Configure solver
-    (this.world.solver as any).iterations = config.solver.iterations;
-    (this.world.solver as any).tolerance = config.solver.tolerance;
-
-    // Create ground plane
-    const groundBody = new CANNON.Body({
-      mass: 0,
-      shape: new CANNON.Plane(),
-      material: new CANNON.Material()
-    });
-    groundBody.quaternion.setFromAxisAngle(new CANNON.Vec3(1, 0, 0), -Math.PI / 2);
-    this.world.addBody(groundBody);
+  constructor(config?: PhysicsConfigOptions) {
+    this.initWorld(config);
   }
 
   public initialize(): void {
-    // Initialize any additional physics settings
-    this.world.allowSleep = true;
+    // Initialize physics world if not already done
+    if (!this.world) {
+      this.initWorld();
+    }
   }
 
-  public update(deltaTime: number): void {
-    this.world.step(deltaTime);
+  private initWorld(config?: PhysicsConfigOptions): void {
+    // Initialize physics world with config
+    // Implementation will depend on chosen physics engine
   }
 
-  public addBody(body: CANNON.Body): void {
+  public addRigidBody(
+    object: Object3D,
+    config: PhysicsConfig
+  ): any {
+    // Create and add a rigid body to the physics world
+    // This will be implemented based on the chosen physics engine
+    return null;
+  }
+
+  public addBody(body: any): void {
+    // Add a rigid body to the physics world
     this.world.addBody(body);
   }
 
-  public removeBody(body: CANNON.Body): void {
-    this.world.removeBody(body);
+  public removeBody(body: any): void {
+    // Remove a rigid body from the physics world
+    // This will be implemented based on the chosen physics engine
   }
 
-  public rayTest(from: CANNON.Vec3, to: CANNON.Vec3, result: CANNON.RaycastResult): void {
+  public addConstraint(
+    bodyA: Object3D,
+    bodyB: Object3D,
+    config: {
+      pivotA?: Vector3;
+      pivotB?: Vector3;
+      axisA?: Vector3;
+      axisB?: Vector3;
+      maxDistance?: number;
+      stiffness?: number;
+      damping?: number;
+    }
+  ): any {
+    // Create and add a constraint between two bodies
+    // This will be implemented based on the chosen physics engine
+    return null;
+  }
+
+  public removeConstraint(constraint: any): void {
+    // Remove a constraint from the physics world
+    // This will be implemented based on the chosen physics engine
+  }
+
+  public applyForce(body: any, force: Vector3): void {
+    // Apply a force to a rigid body
+    // This will be implemented based on the chosen physics engine
+  }
+
+  public applyImpulse(
+    body: any,
+    impulse: Vector3,
+    point: Vector3
+  ): void {
+    // Apply an impulse to a rigid body at a specific point
+    // This will be implemented based on the chosen physics engine
+  }
+
+  public getBodyTransform(
+    body: any,
+    position: Vector3,
+    rotation: Euler
+  ): void {
+    // Get the current transform of a rigid body
+    // This will be implemented based on the chosen physics engine
+  }
+
+  public update(deltaTime: number): void {
+    // Update the physics world
+    // This will be implemented based on the chosen physics engine
+  }
+
+  public rayTest(from: any, to: any, result: any): void {
+    // Perform ray test in physics world
     this.world.rayTest(from, to, result);
   }
 
   public dispose(): void {
-    // Remove all bodies
-    while (this.world.bodies.length > 0) {
-      this.world.removeBody(this.world.bodies[0]);
-    }
+    // Clean up physics world
+    this.world = null;
   }
 
-  public getBody(id: string): THREE.Object3D | undefined {
-    return this.bodies.get(id);
+  public getBody(id: string): CANNON.Body | undefined {
+    return this.world.bodies.find((body: CANNON.Body) => String(body.id) === id);
   }
 } 

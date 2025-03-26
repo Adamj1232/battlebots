@@ -22,7 +22,11 @@ describe('CombatManager', () => {
       maxEnergy: 100,
       energyRegenRate: 5,
       criticalMultiplier: 1.5,
-      criticalChance: 0.1
+      criticalChance: 0.1,
+      childFriendlyMode: true,
+      maxSimultaneousEffects: 10,
+      difficulty: 0.5,
+      tutorialMode: true
     });
 
     mockParticipant1 = {
@@ -31,14 +35,26 @@ describe('CombatManager', () => {
       rotation: new THREE.Euler(0, 0, 0),
       stats: {
         health: 100,
+        maxHealth: 100,
         energy: 100,
+        maxEnergy: 100,
         attack: 20,
         defense: 10,
-        speed: 5
+        speed: 5,
+        battlesWon: 0,
+        battlesLost: 0,
+        totalDamageDealt: 0,
+        totalDamageTaken: 0,
+        criticalHits: 0,
+        abilitiesUsed: 0,
+        transformations: 0,
+        longestCombo: 0
       },
       faction: 'autobot',
       isTransformed: false,
-      activeEffects: []
+      activeEffects: [],
+      abilities: [],
+      cooldowns: new Map()
     };
 
     mockParticipant2 = {
@@ -47,14 +63,26 @@ describe('CombatManager', () => {
       rotation: new THREE.Euler(0, 0, 0),
       stats: {
         health: 100,
+        maxHealth: 100,
         energy: 100,
+        maxEnergy: 100,
         attack: 15,
         defense: 15,
-        speed: 4
+        speed: 4,
+        battlesWon: 0,
+        battlesLost: 0,
+        totalDamageDealt: 0,
+        totalDamageTaken: 0,
+        criticalHits: 0,
+        abilitiesUsed: 0,
+        transformations: 0,
+        longestCombo: 0
       },
       faction: 'decepticon',
       isTransformed: false,
-      activeEffects: []
+      activeEffects: [],
+      abilities: [],
+      cooldowns: new Map()
     };
   });
 
@@ -72,7 +100,10 @@ describe('CombatManager', () => {
       source: 'robot1',
       target: 'robot2',
       position: new THREE.Vector3(0, 0, 0),
-      direction: new THREE.Vector3(1, 0, 0)
+      direction: new THREE.Vector3(1, 0, 0),
+      timestamp: Date.now(),
+      isChildFriendly: true,
+      warningDuration: 1000
     };
 
     combatManager.submitAction(attackAction);
@@ -99,7 +130,10 @@ describe('CombatManager', () => {
           strength: 1,
           source: 'robot1'
         }]
-      }
+      },
+      timestamp: Date.now(),
+      isChildFriendly: true,
+      warningDuration: 1000
     };
 
     combatManager.submitAction(abilityAction);
@@ -120,7 +154,10 @@ describe('CombatManager', () => {
       type: 'transform',
       source: 'robot1',
       position: new THREE.Vector3(0, 0, 0),
-      direction: new THREE.Vector3(1, 0, 0)
+      direction: new THREE.Vector3(1, 0, 0),
+      timestamp: Date.now(),
+      isChildFriendly: true,
+      warningDuration: 1000
     };
 
     combatManager.submitAction(transformAction);
@@ -138,7 +175,10 @@ describe('CombatManager', () => {
       type: 'move',
       source: 'robot1',
       position: newPosition,
-      direction: new THREE.Vector3(1, 0, 0)
+      direction: new THREE.Vector3(1, 0, 0),
+      timestamp: Date.now(),
+      isChildFriendly: true,
+      warningDuration: 1000
     };
 
     combatManager.submitAction(moveAction);
@@ -216,7 +256,10 @@ describe('CombatManager', () => {
       source: 'robot1',
       target: 'robot2',
       position: new THREE.Vector3(0, 0, 0),
-      direction: new THREE.Vector3(1, 0, 0)
+      direction: new THREE.Vector3(1, 0, 0),
+      timestamp: Date.now(),
+      isChildFriendly: true,
+      warningDuration: 1000
     };
 
     combatManager.submitAction(attackAction);

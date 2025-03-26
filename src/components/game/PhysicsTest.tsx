@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { GameEngine } from '../../game/engine/GameEngine';
 import { PhysicsBody } from '../../game/physics/PhysicsBody';
-import { PhysicsConfig } from '../../game/physics/types';
 
 export const PhysicsTest: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -25,7 +24,7 @@ export const PhysicsTest: React.FC = () => {
       updateCanvasSize();
 
       // Create physics configuration
-      const config = new PhysicsConfig({
+      const config = {
         gravity: new THREE.Vector3(0, -9.81, 0),
         solver: {
           iterations: 10,
@@ -36,7 +35,7 @@ export const PhysicsTest: React.FC = () => {
           tolerance: 0.1
         },
         allowSleep: true
-      });
+      };
 
       // Initialize game engine with type assertion since we checked canvasRef.current above
       const gameEngine = new GameEngine(canvasRef.current as HTMLCanvasElement, config);

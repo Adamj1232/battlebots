@@ -8,7 +8,7 @@ import { AccessibilitySettings } from '../types';
 import { CityEnvironment, CityZone } from '../world/CityEnvironment';
 import { CameraController } from '../camera/CameraController';
 import { RobotController } from '../entities/RobotController';
-import { PhysicsConfig } from '../physics/types';
+import { PhysicsConfigOptions } from '../physics/types';
 import * as CANNON from 'cannon-es';
 
 export interface UpdatableObject extends THREE.Object3D {
@@ -42,15 +42,15 @@ export class GameEngine {
   private isRunning: boolean = false;
   private world: CANNON.World;
 
-  constructor(canvas: HTMLCanvasElement, config?: PhysicsConfig) {
+  constructor(canvas: HTMLCanvasElement, config?: PhysicsConfigOptions) {
     this.errorCallback = null;
     this.inputManager = new InputManager();
-    const physicsConfig = config || new PhysicsConfig({
+    const physicsConfig = config || {
       gravity: new THREE.Vector3(0, -9.81, 0),
       solver: { iterations: 10, tolerance: 0.1 },
       constraints: { iterations: 10, tolerance: 0.1 },
       allowSleep: true
-    });
+    };
     this.physicsEngine = new PhysicsEngine(physicsConfig);
     this.canvas = canvas;
     this.isInitialized = false;

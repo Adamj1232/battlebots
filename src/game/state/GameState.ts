@@ -1,6 +1,7 @@
 import { CityZone, ZoneType } from '../environment/CityZone';
 import { PhysicsEngine } from '../physics/PhysicsEngine';
 import { PhysicsConfig } from '../physics/PhysicsConfig';
+import * as THREE from 'three';
 
 export interface RobotState {
   id: string;
@@ -77,7 +78,12 @@ export class GameState {
       const body = this.physicsEngine.getBody(id);
       if (body) {
         robot.position.copy(body.position);
-        robot.rotation.copy(body.rotation);
+        robot.rotation.setFromQuaternion(new THREE.Quaternion(
+          body.quaternion.x,
+          body.quaternion.y,
+          body.quaternion.z,
+          body.quaternion.w
+        ));
       }
     });
   }

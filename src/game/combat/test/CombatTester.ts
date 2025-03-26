@@ -2,7 +2,7 @@ import { CombatManager } from '../CombatManager.js';
 import { CombatStats, AbilityInfo, CombatOptions } from '../types.js';
 import { getAbilities } from '../abilities/index.js';
 import { PhysicsEngine } from '../../physics/PhysicsEngine.js';
-import { PhysicsConfig } from '../../physics/types.js';
+import { getDefaultConfig } from '../../physics/types.js';
 import * as THREE from 'three';
 
 interface TestResult {
@@ -15,7 +15,7 @@ export class CombatTester {
   private combatManager: CombatManager;
 
   constructor() {
-    const physicsEngine = new PhysicsEngine(PhysicsConfig.getDefault());
+    const physicsEngine = new PhysicsEngine(getDefaultConfig());
     const combatOptions: CombatOptions = {
       isRealTime: true,
       turnDuration: 5,

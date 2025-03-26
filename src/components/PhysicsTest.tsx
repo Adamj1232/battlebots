@@ -3,8 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
 import { PhysicsEngine } from '../game/physics/PhysicsEngine';
 import { PhysicsBody } from '../game/physics/PhysicsBody';
-import { Mesh, Vector3 } from 'three';
-import { PhysicsConfig } from '../game/physics/types';
+import { Mesh } from 'three';
 import * as THREE from 'three';
 
 const Scene: React.FC = () => {
@@ -20,7 +19,7 @@ const Scene: React.FC = () => {
     }
 
     // Create physics configuration
-    const config = new PhysicsConfig({
+    const config = {
       gravity: new THREE.Vector3(0, -9.81, 0),
       solver: {
         iterations: 10,
@@ -31,7 +30,7 @@ const Scene: React.FC = () => {
         tolerance: 0.1
       },
       allowSleep: true
-    });
+    };
 
     // Initialize physics engine
     physicsEngine.current = new PhysicsEngine(config);
