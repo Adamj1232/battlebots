@@ -1,4 +1,3 @@
-import { AbilityInfo } from '../types';
 import { RobotPart, PartCombination } from './RobotCustomization';
 
 export const ROBOT_PARTS: RobotPart[] = [

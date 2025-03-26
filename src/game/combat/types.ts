@@ -8,9 +8,14 @@ export interface CombatStats {
   attack: number;
   defense: number;
   speed: number;
-  weight: number;
-  specialAttack: number;
-  specialDefense: number;
+  battlesWon: number;
+  battlesLost: number;
+  totalDamageDealt: number;
+  totalDamageTaken: number;
+  criticalHits: number;
+  abilitiesUsed: number;
+  transformations: number;
+  longestCombo: number;
 }
 
 export interface CombatState {
@@ -23,14 +28,6 @@ export interface CombatState {
   activeEffects: StatusEffect[];
   abilities: AbilityInfo[];
   cooldowns: Map<string, number>;
-  lastDamageTaken: number;
-  comboCount: number;
-  isVulnerable: boolean;
-  visualState: {
-    damageLevel: number; // 0-1 for visual damage state
-    isFlashing: boolean;
-    currentEffect: string | null;
-  };
 }
 
 export type DamageType = 'physical' | 'energy' | 'status' | 'special';
@@ -39,13 +36,12 @@ export type StatusEffectType = 'stun' | 'slow' | 'burn' | 'freeze' | 'shield' | 
 export interface StatusEffect {
   type: StatusEffectType;
   duration: number;
-  intensity: number;
+  strength: number;
   source: string;
-  visualEffect?: string;
 }
 
 export interface CombatAction {
-  type: 'attack' | 'ability' | 'transform' | 'defend' | 'move';
+  type: 'attack' | 'ability' | 'transform' | 'move';
   source: string;
   target?: string;
   position?: THREE.Vector3;
@@ -57,10 +53,11 @@ export interface CombatAction {
 }
 
 export interface CombatEvent {
-  type: 'damage' | 'heal' | 'effect' | 'ability' | 'transform' | 'victory' | 'defeat';
+  type: 'damage' | 'heal' | 'effect' | 'transform' | 'ability' | 'victory' | 'defeat';
   source: string;
   target?: string;
   amount?: number;
+  effect?: StatusEffect;
   position?: THREE.Vector3;
   timestamp: number;
   visualEffect?: string;
@@ -74,37 +71,19 @@ export interface CombatResult {
   effects: StatusEffect[];
   position: THREE.Vector3;
   direction: THREE.Vector3;
-  visualFeedback: {
-    hitEffect: string;
-    damageNumber: string;
-    screenShake: number;
-    cameraFlash: number;
-  };
 }
 
 export interface CombatOptions {
   isRealTime: boolean;
   turnDuration: number;
   criticalMultiplier: number;
-  comboWindow: number;
   childFriendlyMode: boolean;
-  visualFeedbackIntensity: number;
-  soundFeedbackIntensity: number;
   maxSimultaneousEffects: number;
   difficulty: number;
   tutorialMode: boolean;
-}
-
-export interface CombatVisualEffect {
-  type: string;
-  position: THREE.Vector3;
-  rotation: THREE.Euler;
-  scale: THREE.Vector3;
-  duration: number;
-  intensity: number;
-  color: THREE.Color;
-  particleCount: number;
-  isChildFriendly: boolean;
+  maxEnergy: number;
+  energyRegenRate: number;
+  criticalChance: number;
 }
 
 export interface EffectOptions {
@@ -122,18 +101,53 @@ export interface AbilityInfo {
   id: string;
   name: string;
   description: string;
+  damage: number;
+  damageType: DamageType;
   energyCost: number;
   cooldown: number;
-  type: 'attack' | 'defense' | 'support' | 'transform' | 'special';
-  effects: StatusEffect[];
+  range: number;
+  duration?: number;
+  effects?: StatusEffect[];
+  type: 'attack' | 'support';
   visualEffect: string;
   soundEffect: string;
-  targetType: 'self' | 'enemy' | 'ally' | 'area';
-  range: number;
-  areaOfEffect?: number;
+  targetType: 'enemy' | 'self' | 'area';
   isChildFriendly: boolean;
   warningDuration: number;
+}
+
+export interface Achievement {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  isUnlocked: boolean;
+  progress?: number;
+  maxProgress?: number;
+}
+
+export interface Combatant {
+  id: string;
+  name: string;
+  stats: CombatStats;
+  position: {
+    x: number;
+    y: number;
+    z: number;
+  };
+  abilities: Ability[];
+  statusEffects: StatusEffect[];
+}
+
+export interface Ability {
+  id: string;
+  name: string;
+  description: string;
+  energyCost: number;
+  cooldown: number;
   damage?: number;
-  damageType?: DamageType;
-  duration?: number;
+  effects?: StatusEffect[];
+  targetType: 'enemy' | 'self' | 'area';
+  range: number;
+  areaOfEffect?: number;
 } 

@@ -52,7 +52,7 @@ const createStatusAbility = (
   effects: [{
     type: effectType,
     duration,
-    intensity: strength,
+    strength: strength,
     source: id
   }],
   visualEffect: 'status_effect',
@@ -101,7 +101,7 @@ export const AutobotAbilities: Record<string, AbilityInfo> = {
     effects: [{
       type: 'heal',
       duration: 5000,
-      intensity: 10,
+      strength: 10,
       source: 'repairProtocol'
     }],
     visualEffect: 'heal_effect',
@@ -177,13 +177,13 @@ export const DecepticonAbilities: Record<string, AbilityInfo> = {
       {
         type: 'defense_boost',
         duration: 6000,
-        intensity: -0.3,
+        strength: -0.3,
         source: 'terrorField'
       },
       {
         type: 'attack_boost',
         duration: 6000,
-        intensity: -0.2,
+        strength: -0.2,
         source: 'terrorField'
       }
     ],

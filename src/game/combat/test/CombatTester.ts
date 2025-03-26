@@ -20,13 +20,13 @@ export class CombatTester {
       isRealTime: true,
       turnDuration: 5,
       criticalMultiplier: 1.5,
-      comboWindow: 2.0,
       childFriendlyMode: true,
-      visualFeedbackIntensity: 1.0,
-      soundFeedbackIntensity: 1.0,
       maxSimultaneousEffects: 10,
       difficulty: 0.5,
-      tutorialMode: true
+      tutorialMode: true,
+      maxEnergy: 100,
+      energyRegenRate: 20,
+      criticalChance: 0.1
     };
     this.combatManager = new CombatManager(physicsEngine, combatOptions);
   }
@@ -56,9 +56,14 @@ export class CombatTester {
         speed: 5,
         energy: 100,
         maxEnergy: 100,
-        weight: 100,
-        specialAttack: 15,
-        specialDefense: 10
+        battlesWon: 0,
+        battlesLost: 0,
+        totalDamageDealt: 0,
+        totalDamageTaken: 0,
+        criticalHits: 0,
+        abilitiesUsed: 0,
+        transformations: 0,
+        longestCombo: 0
       });
 
       const defender = this.setupTestCombatant('defender', {
@@ -69,9 +74,14 @@ export class CombatTester {
         speed: 4,
         energy: 100,
         maxEnergy: 100,
-        weight: 100,
-        specialAttack: 10,
-        specialDefense: 15
+        battlesWon: 0,
+        battlesLost: 0,
+        totalDamageDealt: 0,
+        totalDamageTaken: 0,
+        criticalHits: 0,
+        abilitiesUsed: 0,
+        transformations: 0,
+        longestCombo: 0
       });
 
       // Test basic attack
@@ -123,9 +133,14 @@ export class CombatTester {
           speed: 5,
           energy: 100,
           maxEnergy: 100,
-          weight: 100,
-          specialAttack: 15,
-          specialDefense: 10
+          battlesWon: 0,
+          battlesLost: 0,
+          totalDamageDealt: 0,
+          totalDamageTaken: 0,
+          criticalHits: 0,
+          abilitiesUsed: 0,
+          transformations: 0,
+          longestCombo: 0
         },
         getAbilities('autobot', 'robot')
       );
@@ -138,9 +153,14 @@ export class CombatTester {
         speed: 4,
         energy: 100,
         maxEnergy: 100,
-        weight: 100,
-        specialAttack: 10,
-        specialDefense: 15
+        battlesWon: 0,
+        battlesLost: 0,
+        totalDamageDealt: 0,
+        totalDamageTaken: 0,
+        criticalHits: 0,
+        abilitiesUsed: 0,
+        transformations: 0,
+        longestCombo: 0
       });
 
       // Get initial energy
@@ -198,9 +218,14 @@ export class CombatTester {
         speed: 5,
         energy: 100,
         maxEnergy: 100,
-        weight: 100,
-        specialAttack: 15,
-        specialDefense: 10
+        battlesWon: 0,
+        battlesLost: 0,
+        totalDamageDealt: 0,
+        totalDamageTaken: 0,
+        criticalHits: 0,
+        abilitiesUsed: 0,
+        transformations: 0,
+        longestCombo: 0
       });
 
       // Apply status effect
@@ -208,7 +233,7 @@ export class CombatTester {
       this.combatManager.applyStatusEffect('target', {
         type: 'slow',
         duration: effectDuration,
-        intensity: 0.5,
+        strength: 0.5,
         source: 'test'
       });
 
@@ -257,9 +282,14 @@ export class CombatTester {
         speed: 5,
         energy: 50,
         maxEnergy: 100,
-        weight: 100,
-        specialAttack: 15,
-        specialDefense: 10
+        battlesWon: 0,
+        battlesLost: 0,
+        totalDamageDealt: 0,
+        totalDamageTaken: 0,
+        criticalHits: 0,
+        abilitiesUsed: 0,
+        transformations: 0,
+        longestCombo: 0
       });
 
       // Get initial state
@@ -327,9 +357,14 @@ export class CombatTester {
           speed: 5,
           energy: 100,
           maxEnergy: 100,
-          weight: 100,
-          specialAttack: 15,
-          specialDefense: 10
+          battlesWon: 0,
+          battlesLost: 0,
+          totalDamageDealt: 0,
+          totalDamageTaken: 0,
+          criticalHits: 0,
+          abilitiesUsed: 0,
+          transformations: 0,
+          longestCombo: 0
         });
 
         const defender = this.setupTestCombatant('defender', {
@@ -340,9 +375,14 @@ export class CombatTester {
           speed: 4,
           energy: 100,
           maxEnergy: 100,
-          weight: 100,
-          specialAttack: 10,
-          specialDefense: 15
+          battlesWon: 0,
+          battlesLost: 0,
+          totalDamageDealt: 0,
+          totalDamageTaken: 0,
+          criticalHits: 0,
+          abilitiesUsed: 0,
+          transformations: 0,
+          longestCombo: 0
         });
 
         this.combatManager.submitAction({
@@ -396,9 +436,14 @@ export class CombatTester {
           speed: 5,
           energy: 100,
           maxEnergy: 100,
-          weight: 100,
-          specialAttack: 15,
-          specialDefense: 10
+          battlesWon: 0,
+          battlesLost: 0,
+          totalDamageDealt: 0,
+          totalDamageTaken: 0,
+          criticalHits: 0,
+          abilitiesUsed: 0,
+          transformations: 0,
+          longestCombo: 0
         },
         getAbilities('autobot', 'robot')
       );

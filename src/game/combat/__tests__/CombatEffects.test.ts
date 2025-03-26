@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { CombatEffects } from '../CombatEffects';
-import { CombatEvent, StatusEffect } from '../types';
 
 jest.mock('three', () => {
   const mockVector3 = jest.fn().mockImplementation((x = 0, y = 0, z = 0) => ({

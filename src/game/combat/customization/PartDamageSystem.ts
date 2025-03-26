@@ -1,4 +1,4 @@
-import { Object3D, Mesh, Material, Color, MeshStandardMaterial } from 'three';
+import { Object3D, Mesh, Color, MeshStandardMaterial } from 'three';
 import { RobotCustomization } from './RobotCustomization';
 
 interface PartDamageState {

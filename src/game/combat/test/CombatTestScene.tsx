@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Scene, PerspectiveCamera, WebGLRenderer, AmbientLight, DirectionalLight, Vector3 } from 'three';
 import { CombatManager } from '../CombatManager';
 import { CombatEffects } from '../CombatEffects';
@@ -11,6 +11,8 @@ import { FloatingTextManager } from '../ui/FloatingText';
 import { getAbilities } from '../abilities';
 import { PhysicsEngine } from '../../physics/PhysicsEngine';
 import * as THREE from 'three';
+import { EnemySpawnService } from '../services/EnemySpawnService';
+import { CombatStats, Combatant } from '../types';
 
 export const CombatTestScene: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -27,7 +29,7 @@ export const CombatTestScene: React.FC = () => {
   const transformationManagerRef = useRef<TransformationManager>();
 
   // Test data
-  const playerStats = {
+  const playerStats: CombatStats = {
     health: 100,
     maxHealth: 100,
     attack: 20,
@@ -35,12 +37,17 @@ export const CombatTestScene: React.FC = () => {
     speed: 5,
     energy: 100,
     maxEnergy: 100,
-    weight: 100,
-    specialAttack: 15,
-    specialDefense: 10
+    battlesWon: 0,
+    battlesLost: 0,
+    totalDamageDealt: 0,
+    totalDamageTaken: 0,
+    criticalHits: 0,
+    abilitiesUsed: 0,
+    transformations: 0,
+    longestCombo: 0
   };
 
-  const enemyStats = {
+  const enemyStats: CombatStats = {
     health: 80,
     maxHealth: 80,
     attack: 15,
@@ -48,9 +55,14 @@ export const CombatTestScene: React.FC = () => {
     speed: 4,
     energy: 80,
     maxEnergy: 80,
-    weight: 90,
-    specialAttack: 12,
-    specialDefense: 8
+    battlesWon: 0,
+    battlesLost: 0,
+    totalDamageDealt: 0,
+    totalDamageTaken: 0,
+    criticalHits: 0,
+    abilitiesUsed: 0,
+    transformations: 0,
+    longestCombo: 0
   };
 
   useEffect(() => {
@@ -100,22 +112,23 @@ export const CombatTestScene: React.FC = () => {
     const combatOptions = {
       isRealTime: true,
       criticalMultiplier: 1.5,
-      comboWindow: 2.0,
       childFriendlyMode: true,
-      visualFeedbackIntensity: 1.0,
-      soundFeedbackIntensity: 1.0,
       maxSimultaneousEffects: 10,
       difficulty: 0.5,
       tutorialMode: true,
-      turnDuration: 5
+      turnDuration: 5,
+      maxEnergy: 100,
+      energyRegenRate: 20,
+      criticalChance: 0.1
     };
 
     const combatManager = new CombatManager(physicsEngine, combatOptions);
     targetingSystem.current = new TargetingSystem(sceneRef.current, combatManager);
     controls.current = new CombatControls(
-      sceneRef.current,
       camera,
+      sceneRef.current,
       combatManager,
+      targetingSystem.current,
       'player'
     );
     const combatEffects = new CombatEffects(sceneRef.current);
@@ -126,6 +139,15 @@ export const CombatTestScene: React.FC = () => {
     );
 
     // Initialize player
+    const newPlayer: Combatant = {
+      id: 'player',
+      name: 'Player',
+      stats: playerStats,
+      position: { x: 0, y: 0, z: 0 },
+      abilities: [],
+      statusEffects: []
+    };
+
     combatManager.initializeCombatant(
       'player',
       playerStats,
@@ -163,7 +185,7 @@ export const CombatTestScene: React.FC = () => {
 
       // Update all systems
       combatManager.update(deltaTime);
-      controls.current?.update(deltaTime);
+      controls.current?.update();
       targetingSystem.current?.update(deltaTime);
       enemyAI.update(deltaTime);
       transformationManager.update(deltaTime);

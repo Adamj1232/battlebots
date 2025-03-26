@@ -1,255 +1,191 @@
-import * as THREE from 'three';
+import { Vector2, Camera, Raycaster, Object3D, Vector3 } from 'three';
 import { CombatManager } from './CombatManager';
-import { CombatEvent } from './types';
-
-interface ControlState {
-  isAttacking: boolean;
-  isDefending: boolean;
-  isTransforming: boolean;
-  isUsingAbility: boolean;
-  targetPosition: THREE.Vector3 | null;
-  lastActionTime: number;
-  actionCooldown: number;
-}
+import { TargetingSystem } from './targeting/TargetingSystem';
 
 export class CombatControls {
-  private scene: THREE.Scene;
-  private camera: THREE.Camera;
+  private camera: Camera;
+  private raycaster: Raycaster;
+  private mousePosition: Vector2;
   private combatManager: CombatManager;
+  private targetingSystem: TargetingSystem;
+  private targetingMode: boolean = false;
+  private selectedAbility: string | null = null;
   private playerId: string;
-  private state: ControlState;
-  private readonly ACTION_COOLDOWN = 0.5; // seconds
-  private readonly CHILD_FRIENDLY_KEYBINDS = {
-    attack: 'Space',
-    defend: 'Shift',
-    transform: 'Tab',
-    ability: 'E',
-    target: 'Mouse1'
-  };
-  private readonly TUTORIAL_HINTS = {
-    attack: 'Press SPACE to attack!',
-    defend: 'Hold SHIFT to defend!',
-    transform: 'Press TAB to transform!',
-    ability: 'Press E to use special ability!',
-    target: 'Click to target enemies!'
-  };
+  private scene: Object3D;
 
-  constructor(scene: THREE.Scene, camera: THREE.Camera, combatManager: CombatManager, playerId: string) {
-    this.scene = scene;
+  constructor(
+    camera: Camera, 
+    scene: Object3D, 
+    combatManager: CombatManager,
+    targetingSystem: TargetingSystem,
+    playerId: string
+  ) {
     this.camera = camera;
+    this.scene = scene;
     this.combatManager = combatManager;
+    this.targetingSystem = targetingSystem;
     this.playerId = playerId;
-    this.state = {
-      isAttacking: false,
-      isDefending: false,
-      isTransforming: false,
-      isUsingAbility: false,
-      targetPosition: null,
-      lastActionTime: 0,
-      actionCooldown: this.ACTION_COOLDOWN
-    };
+    this.raycaster = new Raycaster();
+    this.mousePosition = new Vector2();
 
     this.setupEventListeners();
   }
 
-  public setupEventListeners(): void {
-    // Keyboard controls
-    window.addEventListener('keydown', this.handleKeyDown.bind(this));
-    window.addEventListener('keyup', this.handleKeyUp.bind(this));
+  private setupEventListeners(): void {
+    // Basic attack on left click
+    window.addEventListener('click', (event) => {
+      if (!this.targetingMode) {
+        this.handleBasicAttack(event);
+      } else {
+        this.handleTargetedAbility(event);
+      }
+    });
 
-    // Mouse controls
-    window.addEventListener('mousedown', this.handleMouseDown.bind(this));
-    window.addEventListener('mousemove', this.handleMouseMove.bind(this));
-    window.addEventListener('mouseup', this.handleMouseUp.bind(this));
+    // Track mouse position for targeting
+    window.addEventListener('mousemove', (event) => {
+      this.updateMousePosition(event);
+      this.updateTargeting();
+    });
 
-    // Touch controls for mobile
-    window.addEventListener('touchstart', this.handleTouchStart.bind(this));
-    window.addEventListener('touchmove', this.handleTouchMove.bind(this));
-    window.addEventListener('touchend', this.handleTouchEnd.bind(this));
-  }
+    // Ability hotkeys (number keys 1-4 for easy access)
+    window.addEventListener('keydown', (event) => {
+      this.handleAbilityHotkeys(event);
+    });
 
-  private handleKeyDown(event: KeyboardEvent): void {
-    const now = performance.now();
-    if (now - this.state.lastActionTime < this.state.actionCooldown) return;
-
-    switch (event.code) {
-      case this.CHILD_FRIENDLY_KEYBINDS.attack:
-        this.state.isAttacking = true;
-        this.performAttack();
-        break;
-      case this.CHILD_FRIENDLY_KEYBINDS.defend:
-        this.state.isDefending = true;
-        this.performDefend();
-        break;
-      case this.CHILD_FRIENDLY_KEYBINDS.transform:
-        this.state.isTransforming = true;
-        this.performTransform();
-        break;
-      case this.CHILD_FRIENDLY_KEYBINDS.ability:
-        this.state.isUsingAbility = true;
-        this.performAbility();
-        break;
-    }
-
-    this.state.lastActionTime = now;
-  }
-
-  private handleKeyUp(event: KeyboardEvent): void {
-    switch (event.code) {
-      case this.CHILD_FRIENDLY_KEYBINDS.attack:
-        this.state.isAttacking = false;
-        break;
-      case this.CHILD_FRIENDLY_KEYBINDS.defend:
-        this.state.isDefending = false;
-        break;
-      case this.CHILD_FRIENDLY_KEYBINDS.transform:
-        this.state.isTransforming = false;
-        break;
-      case this.CHILD_FRIENDLY_KEYBINDS.ability:
-        this.state.isUsingAbility = false;
-        break;
-    }
-  }
-
-  private handleMouseDown(event: MouseEvent): void {
-    if (event.button === 0) { // Left click
-      this.state.targetPosition = this.getMousePosition(event);
-      this.performAttack();
-    }
-  }
-
-  private handleMouseMove(event: MouseEvent): void {
-    if (this.state.isAttacking) {
-      this.state.targetPosition = this.getMousePosition(event);
-    }
-  }
-
-  private handleMouseUp(event: MouseEvent): void {
-    if (event.button === 0) {
-      this.state.targetPosition = null;
-    }
-  }
-
-  private handleTouchStart(event: TouchEvent): void {
-    event.preventDefault();
-    const touch = event.touches[0];
-    this.state.targetPosition = this.getTouchPosition(touch);
-    this.performAttack();
-  }
-
-  private handleTouchMove(event: TouchEvent): void {
-    event.preventDefault();
-    if (this.state.isAttacking) {
-      const touch = event.touches[0];
-      this.state.targetPosition = this.getTouchPosition(touch);
-    }
-  }
-
-  private handleTouchEnd(event: TouchEvent): void {
-    event.preventDefault();
-    this.state.targetPosition = null;
-  }
-
-  private getMousePosition(event: MouseEvent): THREE.Vector3 {
-    const mouse = new THREE.Vector2(
-      (event.clientX / window.innerWidth) * 2 - 1,
-      -(event.clientY / window.innerHeight) * 2 + 1
-    );
-
-    return this.screenToWorld(mouse);
-  }
-
-  private getTouchPosition(touch: Touch): THREE.Vector3 {
-    const mouse = new THREE.Vector2(
-      (touch.clientX / window.innerWidth) * 2 - 1,
-      -(touch.clientY / window.innerHeight) * 2 + 1
-    );
-
-    return this.screenToWorld(mouse);
-  }
-
-  private screenToWorld(screenPos: THREE.Vector2): THREE.Vector3 {
-    // Create a plane at z=0
-    const plane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
-    const raycaster = new THREE.Raycaster();
-
-    // Set up the raycaster
-    raycaster.setFromCamera(screenPos, this.camera);
-    const intersection = new THREE.Vector3();
-
-    // Find intersection with the plane
-    raycaster.ray.intersectPlane(plane, intersection);
-    return intersection;
-  }
-
-  private performAttack(): void {
-    if (!this.state.targetPosition) return;
-
-    this.combatManager.submitAction({
-      type: 'attack',
-      source: this.playerId,
-      position: this.state.targetPosition,
-      direction: this.state.targetPosition.clone().normalize(),
-      timestamp: performance.now(),
-      isChildFriendly: true,
-      warningDuration: 1.0
+    // Right click to cancel targeting
+    window.addEventListener('contextmenu', (event) => {
+      event.preventDefault();
+      if (this.targetingMode) {
+        this.cancelTargeting();
+      }
     });
   }
 
-  private performDefend(): void {
-    this.combatManager.submitAction({
-      type: 'defend',
-      source: this.playerId,
-      position: new THREE.Vector3(), // Will be updated by the combat manager
-      direction: new THREE.Vector3(),
-      timestamp: performance.now(),
-      isChildFriendly: true,
-      warningDuration: 0.5
-    });
+  private updateMousePosition(event: MouseEvent): void {
+    // Convert mouse position to normalized device coordinates
+    this.mousePosition.x = (event.clientX / window.innerWidth) * 2 - 1;
+    this.mousePosition.y = -(event.clientY / window.innerHeight) * 2 + 1;
   }
 
-  private performTransform(): void {
-    this.combatManager.submitAction({
-      type: 'transform',
-      source: this.playerId,
-      position: new THREE.Vector3(), // Will be updated by the combat manager
-      direction: new THREE.Vector3(),
-      timestamp: performance.now(),
-      isChildFriendly: true,
-      warningDuration: 1.0
-    });
-  }
-
-  private performAbility(): void {
-    if (!this.state.targetPosition) return;
-
-    this.combatManager.submitAction({
-      type: 'ability',
-      source: this.playerId,
-      position: this.state.targetPosition,
-      direction: this.state.targetPosition.clone().normalize(),
-      timestamp: performance.now(),
-      isChildFriendly: true,
-      warningDuration: 1.5
-    });
-  }
-
-  public update(deltaTime: number): void {
-    // Update continuous actions
-    if (this.state.isAttacking && this.state.targetPosition) {
-      this.performAttack();
+  private updateTargeting(): void {
+    const target = this.getTargetUnderMouse();
+    if (target) {
+      const isValidTarget = this.isValidTarget(target);
+      this.targetingSystem.showPlayerTargeting(target.position, isValidTarget);
     }
   }
 
-  public dispose(): void {
-    // Remove event listeners
-    window.removeEventListener('keydown', this.handleKeyDown.bind(this));
-    window.removeEventListener('keyup', this.handleKeyUp.bind(this));
-    window.removeEventListener('mousedown', this.handleMouseDown.bind(this));
-    window.removeEventListener('mousemove', this.handleMouseMove.bind(this));
-    window.removeEventListener('mouseup', this.handleMouseUp.bind(this));
-    window.removeEventListener('touchstart', this.handleTouchStart.bind(this));
-    window.removeEventListener('touchmove', this.handleTouchMove.bind(this));
-    window.removeEventListener('touchend', this.handleTouchEnd.bind(this));
+  private handleBasicAttack(event: MouseEvent): void {
+    const target = this.getTargetUnderMouse();
+    if (target && target.userData.combatId && this.isValidTarget(target)) {
+      this.combatManager.submitAction({
+        type: 'attack',
+        source: this.playerId,
+        target: target.userData.combatId,
+        position: this.scene.getObjectByName(this.playerId)?.position || new Vector3(),
+        direction: target.position.clone().sub(this.scene.getObjectByName(this.playerId)?.position || new Vector3()).normalize(),
+        data: { isMelee: this.isInMeleeRange(target) },
+        timestamp: Date.now(),
+        isChildFriendly: true,
+        warningDuration: 1000
+      });
+    }
+  }
+
+  private handleTargetedAbility(event: MouseEvent): void {
+    if (!this.selectedAbility) return;
+
+    const target = this.getTargetUnderMouse();
+    if (target && target.userData.combatId && this.isValidTarget(target)) {
+      this.combatManager.submitAction({
+        type: 'ability',
+        source: this.playerId,
+        target: target.userData.combatId,
+        position: this.scene.getObjectByName(this.playerId)?.position || new Vector3(),
+        direction: target.position.clone().sub(this.scene.getObjectByName(this.playerId)?.position || new Vector3()).normalize(),
+        data: { abilityId: this.selectedAbility },
+        timestamp: Date.now(),
+        isChildFriendly: true,
+        warningDuration: 1000
+      });
+    }
+
+    this.cancelTargeting();
+  }
+
+  private isValidTarget(target: Object3D): boolean {
+    // Check if target is an enemy and alive
+    const participant = this.combatManager.getParticipant(target.userData.combatId);
+    return target.userData.combatId && 
+           target.userData.combatId !== this.playerId &&
+           participant !== undefined &&
+           participant.stats !== undefined &&
+           participant.stats.health > 0;
+  }
+
+  private handleAbilityHotkeys(event: KeyboardEvent): void {
+    // Simple number keys 1-4 for abilities
+    const abilityKeys = ['1', '2', '3', '4'];
+    const keyIndex = abilityKeys.indexOf(event.key);
+    
+    if (keyIndex !== -1) {
+      // TODO: Get actual ability ID from player's equipped abilities
+      const abilityId = `ability_${keyIndex + 1}`;
+      this.startTargeting(abilityId);
+    }
+
+    // Space bar for transformation
+    if (event.code === 'Space') {
+      this.handleTransformation();
+    }
+  }
+
+  private startTargeting(abilityId: string): void {
+    this.targetingMode = true;
+    this.selectedAbility = abilityId;
+  }
+
+  private cancelTargeting(): void {
+    this.targetingMode = false;
+    this.selectedAbility = null;
+  }
+
+  private getTargetUnderMouse(): Object3D | null {
+    this.raycaster.setFromCamera(this.mousePosition, this.camera);
+    const intersects = this.raycaster.intersectObjects(this.scene.children, true);
+    
+    // Find the first intersected object that has a combatId
+    for (const intersect of intersects) {
+      let current: Object3D | null = intersect.object;
+      while (current) {
+        if (current.userData.combatId) {
+          return current;
+        }
+        current = current.parent;
+      }
+    }
+    
+    return null;
+  }
+
+  private isInMeleeRange(target: Object3D): boolean {
+    // Simple distance check for melee range
+    const playerPosition = this.scene.getObjectByName(this.playerId)?.position;
+    if (!playerPosition) return false;
+
+    const distance = playerPosition.distanceTo(target.position);
+    return distance <= 5; // 5 units is melee range
+  }
+
+  private handleTransformation(): void {
+    // TODO: Implement transformation logic
+    console.log('Transform!');
+  }
+
+  public update(): void {
+    // Update targeting indicators if in targeting mode
+    if (this.targetingMode) {
+      this.updateTargeting();
+    }
   }
 } 
