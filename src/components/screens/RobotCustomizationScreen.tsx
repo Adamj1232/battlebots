@@ -3,7 +3,7 @@ import { useDispatch } from 'react-redux';
 import { PrimitiveRobot } from '../../game/robots/PrimitiveRobot';
 import { PartGenerator } from '../../game/robots/PartGenerator';
 import { RobotPreview } from '../robot/RobotPreview';
-import { Scene, Color } from 'three';
+import { Scene, Color, Object3D } from 'three';
 import { RobotFaction } from '../../game/robots/types';
 import { setCurrentScreen } from '../../state/slices/gameSlice';
 import '../../styles/RobotCustomizationScreen.css';
@@ -23,10 +23,10 @@ const partCategories: UIPartCategory[] = ['head', 'torso', 'arms', 'legs'];
 
 export const RobotCustomizationScreen: React.FC = () => {
   const dispatch = useDispatch();
-  const [scene] = useState<Scene>(new Scene());
+  const [scene] = useState(() => new Scene());
   const [partGenerator] = useState(() => new PartGenerator());
   const [selectedFaction] = useState<RobotFaction>('autobot');
-  const [robot] = useState(() => new PrimitiveRobot(scene, partGenerator));
+  const [robot, setRobot] = useState<PrimitiveRobot | null>(null);
   const [config, setConfig] = useState({
     faction: selectedFaction,
     parts: {
@@ -47,17 +47,37 @@ export const RobotCustomizationScreen: React.FC = () => {
     }
   });
 
+  // Initialize robot
   useEffect(() => {
-    robot.assembleParts(config);
-    robot.updateColors(config.colors.primary, config.colors.secondary);
+    const newRobot = new PrimitiveRobot(scene, partGenerator);
+    newRobot.assembleParts(config);
+    
+    // Center the robot
+    newRobot.traverse((object: Object3D) => {
+      if (object.name === 'root') {
+        object.position.y = -1;
+      }
+    });
+
+    setRobot(newRobot);
 
     return () => {
-      robot.dispose();
+      newRobot.dispose();
     };
+  }, [scene, partGenerator]);
+
+  // Handle updates to config
+  useEffect(() => {
+    if (robot) {
+      robot.assembleParts(config);
+      robot.updateColors(config.colors.primary, config.colors.secondary);
+    }
   }, [config, robot]);
 
   const handlePartSelect = (category: UIPartCategory) => {
-    const partId = `${selectedFaction}-basic-${categoryMap[category]}`;
+    const actualCategory = categoryMap[category];
+    const partId = `${selectedFaction}-basic-${actualCategory}`;
+    
     setConfig(prev => ({
       ...prev,
       parts: {

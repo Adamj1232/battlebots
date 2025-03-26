@@ -26,6 +26,7 @@ export class PrimitiveRobot {
     this.partGenerator = partGenerator;
     this.parts = {};
     this.root = new Group();
+    this.root.name = 'root';
     scene.add(this.root);
   }
 
@@ -64,6 +65,8 @@ export class PrimitiveRobot {
 
       if (part) {
         this.parts[partName] = part;
+      } else {
+        console.error(`Failed to generate part: ${partName} with id ${partConfig.id}`);
       }
     }
 
@@ -86,9 +89,15 @@ export class PrimitiveRobot {
             part.mesh.rotation.setFromVector3(attachmentPoint.rotation);
             part.mesh.scale.copy(attachmentPoint.scale);
             parentPart.mesh.add(part.mesh);
+          } else {
+            console.error(`No attachment point found for ${partName} on parent part`);
           }
+        } else {
+          console.error(`No parent part found for socket: ${partConfig.socket}`);
         }
       }
+    } else {
+      console.error('No torso part generated, cannot assemble robot');
     }
   }
 
@@ -159,8 +168,18 @@ export class PrimitiveRobot {
     Object.values(this.parts).forEach(part => {
       if (part.mesh.parent) {
         part.mesh.parent.remove(part.mesh);
+        part.materials.forEach(material => {
+          if (material.dispose) {
+            material.dispose();
+          }
+        });
       }
     });
+
+    // Clear the root group
+    while (this.root.children.length > 0) {
+      this.root.remove(this.root.children[0]);
+    }
 
     this.parts = {};
   }
@@ -199,5 +218,9 @@ export class PrimitiveRobot {
     if (this.root.parent) {
       this.root.parent.remove(this.root);
     }
+    // Clear any references
+    this.scene = null as any;
+    this.partGenerator = null as any;
+    this.config = undefined;
   }
 } 

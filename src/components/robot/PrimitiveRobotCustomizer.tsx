@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Color, Scene, WebGLRenderer } from 'three';
+import { Color, Scene } from 'three';
 import { PrimitiveRobot } from '../../game/robots/PrimitiveRobot';
 import { PartGenerator } from '../../game/robots/PartGenerator';
 import { PartCategory, RobotConfig, RobotFaction } from '../../game/robots/types';
@@ -170,12 +170,14 @@ export const PrimitiveRobotCustomizer: React.FC<PrimitiveRobotCustomizerProps> =
         <div className="w-1/3">
           <h2 className="text-xl font-bold mb-4">Preview</h2>
           <div className="aspect-square bg-gray-800 rounded-lg overflow-hidden">
-            <RobotPreview
-              scene={sceneRef.current}
-              onRotate={(x, y) => {
-                // Implement rotation logic
-              }}
-            />
+            {sceneRef.current && (
+              <RobotPreview
+                scene={sceneRef.current}
+                onRotate={(x, y) => {
+                  // Implement rotation logic
+                }}
+              />
+            )}
           </div>
         </div>
 

@@ -94,6 +94,49 @@ export class PartGenerator {
     return null;
   }
 
+  private createMaterials(options: PartGenerationOptions) {
+    return {
+      primary: new MeshStandardMaterial({
+        color: options.primaryColor,
+        metalness: options.metalness || 0.7,
+        roughness: options.roughness || 0.3,
+      }),
+      secondary: new MeshStandardMaterial({
+        color: options.secondaryColor,
+        metalness: options.metalness || 0.7,
+        roughness: options.roughness || 0.3,
+      }),
+      glow: new MeshStandardMaterial({
+        color: options.style.faction === 'autobot' ? 0x00ffff : 0xff0000,
+        emissive: options.style.faction === 'autobot' ? 0x00ffff : 0xff0000,
+        emissiveIntensity: 0.5,
+        metalness: 0,
+        roughness: 0.5,
+      })
+    };
+  }
+
+  private applyDamageEffect(materials: Record<string, MeshStandardMaterial>, amount: number) {
+    Object.values(materials).forEach(material => {
+      material.roughness = Math.min(1, material.roughness + amount * 0.5);
+      material.metalness = Math.max(0, material.metalness - amount * 0.3);
+    });
+  }
+
+  private animatePart(group: Group, animationType: string, progress: number) {
+    switch (animationType) {
+      case 'idle':
+        group.rotation.y = Math.sin(progress * Math.PI * 2) * 0.1;
+        break;
+      case 'attack':
+        group.position.z = Math.sin(progress * Math.PI) * 0.5;
+        break;
+      case 'hit':
+        group.position.x = Math.sin(progress * Math.PI * 4) * 0.2;
+        break;
+    }
+  }
+
   public getAvailableParts(category: PartCategory, faction: RobotFaction): PartStyle[] {
     return Object.values(this.partLibrary[category])
       .filter(entry => entry.style.faction === faction)
@@ -344,50 +387,6 @@ export class PartGenerator {
         this.animatePart(group, animationType, progress);
       }
     };
-  }
-
-  // Helper methods for part generation
-  private createMaterials(options: PartGenerationOptions) {
-    return {
-      primary: new MeshStandardMaterial({
-        color: options.primaryColor,
-        metalness: options.metalness ?? 0.7,
-        roughness: options.roughness ?? 0.3
-      }),
-      secondary: new MeshStandardMaterial({
-        color: options.secondaryColor,
-        metalness: options.metalness ?? 0.7,
-        roughness: options.roughness ?? 0.3
-      }),
-      glow: new MeshStandardMaterial({
-        color: new Color(0x99ffff),
-        emissive: new Color(0x66ccff),
-        emissiveIntensity: 0.5
-      })
-    };
-  }
-
-  private applyDamageEffect(materials: Record<string, MeshStandardMaterial>, amount: number) {
-    Object.values(materials).forEach(material => {
-      if (material instanceof MeshStandardMaterial) {
-        material.roughness = Math.min(material.roughness + amount * 0.3, 1);
-        material.metalness = Math.max(material.metalness - amount * 0.2, 0);
-        material.color.multiplyScalar(1 - amount * 0.3);
-      }
-    });
-  }
-
-  private animatePart(group: Group, animationType: string, progress: number) {
-    // Implement basic animations based on animationType and progress
-    switch (animationType) {
-      case 'idle':
-        group.rotation.y = Math.sin(progress * Math.PI * 2) * 0.1;
-        break;
-      case 'attack':
-        group.rotation.z = Math.sin(progress * Math.PI * 2) * 0.3;
-        break;
-      // Add more animation types as needed
-    }
   }
 }
 
