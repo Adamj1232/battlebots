@@ -204,14 +204,14 @@ export class PartGenerator {
     const group = new Group();
     const materials = this.createMaterials(options);
     
-    // Create basic head shape with more detail
+    // Create main head shape with more detail
     const headMesh = new Mesh(
       this.getHeadGeometry(options.style.faction),
       materials.primary
     );
     group.add(headMesh);
 
-    // Add eyes with glow effect
+    // Add eyes with enhanced glow effect
     const eyeMaterial = materials.glow;
     const leftEye = this.createEye(eyeMaterial);
     const rightEye = this.createEye(eyeMaterial);
@@ -230,13 +230,37 @@ export class PartGenerator {
 
     // Add faction-specific details
     if (options.style.faction === 'autobot') {
-      // Add crest detail
+      // Add crest detail with energy lines
       const crestGeometry = new BoxGeometry(0.6, 0.2, 0.1);
       const crest = new Mesh(crestGeometry, materials.secondary);
       crest.position.set(0, 0.3, 0.3);
       group.add(crest);
+
+      // Add cheek guards
+      const guardGeometry = new BoxGeometry(0.2, 0.15, 0.1);
+      const leftGuard = new Mesh(guardGeometry, materials.secondary);
+      const rightGuard = new Mesh(guardGeometry, materials.secondary);
+      leftGuard.position.set(-0.4, 0, 0.3);
+      rightGuard.position.set(0.4, 0, 0.3);
+      group.add(leftGuard);
+      group.add(rightGuard);
+
+      // Add forehead detail
+      const foreheadGeometry = new BoxGeometry(0.3, 0.1, 0.1);
+      const forehead = new Mesh(foreheadGeometry, materials.secondary);
+      forehead.position.set(0, 0.4, 0.3);
+      group.add(forehead);
+
+      // Add energy lines
+      const lineGeometry = new BoxGeometry(0.4, 0.05, 0.05);
+      const line1 = new Mesh(lineGeometry, materials.glow);
+      const line2 = new Mesh(lineGeometry, materials.glow);
+      line1.position.set(-0.2, 0.35, 0.3);
+      line2.position.set(0.2, 0.35, 0.3);
+      group.add(line1);
+      group.add(line2);
     } else {
-      // Add angular details
+      // Add angular details with energy spikes
       const detailGeometry = new BoxGeometry(0.4, 0.1, 0.1);
       const leftDetail = new Mesh(detailGeometry, materials.secondary);
       const rightDetail = new Mesh(detailGeometry, materials.secondary);
@@ -244,6 +268,28 @@ export class PartGenerator {
       rightDetail.position.set(0.3, 0.2, 0.3);
       group.add(leftDetail);
       group.add(rightDetail);
+
+      // Add cheek armor
+      const armorGeometry = new BoxGeometry(0.25, 0.2, 0.1);
+      const leftArmor = new Mesh(armorGeometry, materials.secondary);
+      const rightArmor = new Mesh(armorGeometry, materials.secondary);
+      leftArmor.position.set(-0.45, 0, 0.3);
+      rightArmor.position.set(0.45, 0, 0.3);
+      leftArmor.rotation.z = -Math.PI / 6;
+      rightArmor.rotation.z = Math.PI / 6;
+      group.add(leftArmor);
+      group.add(rightArmor);
+
+      // Add forehead spikes
+      const spikeGeometry = new ConeGeometry(0.05, 0.15, 8);
+      const spikes = [];
+      for (let i = 0; i < 3; i++) {
+        const spike = new Mesh(spikeGeometry, materials.glow);
+        spike.position.set(-0.2 + (i * 0.2), 0.4, 0.3);
+        spike.rotation.z = Math.PI / 4;
+        spikes.push(spike);
+        group.add(spike);
+      }
     }
 
     return {
@@ -287,7 +333,7 @@ export class PartGenerator {
     const group = new Group();
     const materials = this.createMaterials(options);
     
-    // Create main torso shape
+    // Create main torso shape with more detail
     const torsoMesh = new Mesh(
       new BoxGeometry(1.2, 1.5, 0.8),
       materials.primary
@@ -296,13 +342,21 @@ export class PartGenerator {
 
     // Add faction-specific details
     if (options.style.faction === 'autobot') {
-      // Add circular chest emblem
+      // Add circular chest emblem with energy matrix
       const emblemGeometry = new SphereGeometry(0.2, 16, 16);
       const emblem = new Mesh(emblemGeometry, materials.secondary);
       emblem.position.set(0, 0.3, 0.4);
       group.add(emblem);
 
-      // Add shoulder guards
+      // Add energy matrix lines
+      for (let i = 0; i < 3; i++) {
+        const lineGeometry = new BoxGeometry(0.3, 0.05, 0.05);
+        const line = new Mesh(lineGeometry, materials.glow);
+        line.position.set(0, 0.3 + (i * 0.1), 0.4);
+        group.add(line);
+      }
+
+      // Add shoulder guards with energy accents
       const guardGeometry = new BoxGeometry(0.3, 0.4, 0.1);
       const leftGuard = new Mesh(guardGeometry, materials.secondary);
       const rightGuard = new Mesh(guardGeometry, materials.secondary);
@@ -310,12 +364,35 @@ export class PartGenerator {
       rightGuard.position.set(0.8, 0.6, 0);
       group.add(leftGuard);
       group.add(rightGuard);
+
+      // Add chest armor plates
+      const plateGeometry = new BoxGeometry(0.2, 0.15, 0.1);
+      for (let i = 0; i < 3; i++) {
+        const plate = new Mesh(plateGeometry, materials.secondary);
+        plate.position.set(-0.3 + (i * 0.3), 0.2, 0.4);
+        group.add(plate);
+      }
+
+      // Add waist details
+      const waistGeometry = new BoxGeometry(0.8, 0.2, 0.1);
+      const waist = new Mesh(waistGeometry, materials.secondary);
+      waist.position.set(0, -0.6, 0.4);
+      group.add(waist);
     } else {
-      // Add angular chest details
+      // Add angular chest details with energy lines
       const detailGeometry = new BoxGeometry(0.4, 0.3, 0.1);
       const detail = new Mesh(detailGeometry, materials.secondary);
       detail.position.set(0, 0.3, 0.4);
       group.add(detail);
+
+      // Add energy lines
+      const lineGeometry = new BoxGeometry(0.3, 0.05, 0.05);
+      const leftLine = new Mesh(lineGeometry, materials.glow);
+      const rightLine = new Mesh(lineGeometry, materials.glow);
+      leftLine.position.set(-0.2, 0.3, 0.4);
+      rightLine.position.set(0.2, 0.3, 0.4);
+      group.add(leftLine);
+      group.add(rightLine);
 
       // Add shoulder spikes
       const spikeGeometry = new ConeGeometry(0.1, 0.3, 8);
@@ -327,6 +404,22 @@ export class PartGenerator {
       rightSpike.rotation.z = -Math.PI / 4;
       group.add(leftSpike);
       group.add(rightSpike);
+
+      // Add chest armor plates
+      const plateGeometry = new BoxGeometry(0.2, 0.15, 0.1);
+      for (let i = 0; i < 3; i++) {
+        const plate = new Mesh(plateGeometry, materials.secondary);
+        plate.position.set(-0.3 + (i * 0.3), 0.2, 0.4);
+        plate.rotation.z = Math.PI / 4;
+        group.add(plate);
+      }
+
+      // Add waist details
+      const waistGeometry = new BoxGeometry(0.8, 0.2, 0.1);
+      const waist = new Mesh(waistGeometry, materials.secondary);
+      waist.position.set(0, -0.6, 0.4);
+      waist.rotation.z = Math.PI / 4;
+      group.add(waist);
     }
 
     return {
@@ -398,12 +491,42 @@ export class PartGenerator {
       const shoulder = new Mesh(shoulderGeometry, materials.secondary);
       shoulder.position.set(0, 0, 0);
       group.add(shoulder);
+
+      // Add energy lines
+      const lineGeometry = new BoxGeometry(0.3, 0.05, 0.05);
+      const line = new Mesh(lineGeometry, materials.glow);
+      line.position.set(0, 0.1, 0);
+      group.add(line);
+
+      // Add armor plates
+      const plateGeometry = new BoxGeometry(0.15, 0.1, 0.1);
+      for (let i = 0; i < 3; i++) {
+        const plate = new Mesh(plateGeometry, materials.secondary);
+        plate.position.set(0, -0.2 + (i * 0.2), 0);
+        group.add(plate);
+      }
     } else {
       const shoulderGeometry = new ConeGeometry(0.2, 0.3, 8);
       const shoulder = new Mesh(shoulderGeometry, materials.secondary);
       shoulder.position.set(0, 0, 0);
       shoulder.rotation.z = Math.PI / 2;
       group.add(shoulder);
+
+      // Add energy spikes
+      const spikeGeometry = new ConeGeometry(0.05, 0.15, 8);
+      const spike = new Mesh(spikeGeometry, materials.glow);
+      spike.position.set(0, 0.1, 0);
+      spike.rotation.z = Math.PI / 2;
+      group.add(spike);
+
+      // Add armor plates
+      const plateGeometry = new BoxGeometry(0.15, 0.1, 0.1);
+      for (let i = 0; i < 3; i++) {
+        const plate = new Mesh(plateGeometry, materials.secondary);
+        plate.position.set(0, -0.2 + (i * 0.2), 0);
+        plate.rotation.z = Math.PI / 4;
+        group.add(plate);
+      }
     }
 
     // Create lower arm with joint
@@ -414,11 +537,38 @@ export class PartGenerator {
     lowerArm.position.y = -1.1;
     group.add(lowerArm);
 
-    // Add elbow joint
+    // Add elbow joint with energy effect
     const jointGeometry = new SphereGeometry(0.15, 8, 8);
     const joint = new Mesh(jointGeometry, materials.primary);
     joint.position.y = -0.8;
     group.add(joint);
+
+    // Add energy ring around joint
+    const ringGeometry = new TorusGeometry(0.15, 0.02, 8, 16);
+    const ring = new Mesh(ringGeometry, materials.glow);
+    ring.position.y = -0.8;
+    ring.rotation.x = Math.PI / 2;
+    group.add(ring);
+
+    // Add forearm details
+    if (options.style.faction === 'autobot') {
+      // Add circular details
+      const detailGeometry = new SphereGeometry(0.08, 8, 8);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(detailGeometry, materials.secondary);
+        detail.position.set(0, -1.2 + (i * 0.2), 0);
+        group.add(detail);
+      }
+    } else {
+      // Add angular details
+      const detailGeometry = new BoxGeometry(0.15, 0.05, 0.05);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(detailGeometry, materials.secondary);
+        detail.position.set(0, -1.2 + (i * 0.2), 0);
+        detail.rotation.z = Math.PI / 4;
+        group.add(detail);
+      }
+    }
 
     // Add weapon mount point
     const weaponMount = new Group();
@@ -464,13 +614,20 @@ export class PartGenerator {
     upperLeg.position.y = -0.45;
     group.add(upperLeg);
 
-    // Add hip joint
+    // Add hip joint with energy effect
     const hipJoint = new Mesh(
       new SphereGeometry(0.2, 8, 8),
       materials.secondary
     );
     hipJoint.position.y = 0;
     group.add(hipJoint);
+
+    // Add energy ring around hip joint
+    const hipRingGeometry = new TorusGeometry(0.2, 0.02, 8, 16);
+    const hipRing = new Mesh(hipRingGeometry, materials.glow);
+    hipRing.position.y = 0;
+    hipRing.rotation.x = Math.PI / 2;
+    group.add(hipRing);
 
     // Create lower leg with knee joint
     const lowerLeg = new Mesh(
@@ -480,13 +637,20 @@ export class PartGenerator {
     lowerLeg.position.y = -1.25;
     group.add(lowerLeg);
 
-    // Add knee joint
+    // Add knee joint with energy effect
     const kneeJoint = new Mesh(
       new SphereGeometry(0.15, 8, 8),
       materials.primary
     );
     kneeJoint.position.y = -0.8;
     group.add(kneeJoint);
+
+    // Add energy ring around knee joint
+    const kneeRingGeometry = new TorusGeometry(0.15, 0.02, 8, 16);
+    const kneeRing = new Mesh(kneeRingGeometry, materials.glow);
+    kneeRing.position.y = -0.8;
+    kneeRing.rotation.x = Math.PI / 2;
+    group.add(kneeRing);
 
     // Create foot with faction-specific details
     const foot = new Mesh(
@@ -499,18 +663,76 @@ export class PartGenerator {
 
     // Add faction-specific details
     if (options.style.faction === 'autobot') {
-      // Add circular detail on upper leg
+      // Add circular details on upper leg
       const detailGeometry = new SphereGeometry(0.1, 8, 8);
-      const detail = new Mesh(detailGeometry, materials.secondary);
-      detail.position.set(0, -0.2, 0.2);
-      group.add(detail);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(detailGeometry, materials.secondary);
+        detail.position.set(0, -0.2 + (i * 0.2), 0.2);
+        group.add(detail);
+      }
+
+      // Add energy lines
+      const lineGeometry = new BoxGeometry(0.3, 0.05, 0.05);
+      for (let i = 0; i < 2; i++) {
+        const line = new Mesh(lineGeometry, materials.glow);
+        line.position.set(0, -0.2 + (i * 0.2), 0.2);
+        group.add(line);
+      }
+
+      // Add armor plates
+      const plateGeometry = new BoxGeometry(0.15, 0.1, 0.1);
+      for (let i = 0; i < 3; i++) {
+        const plate = new Mesh(plateGeometry, materials.secondary);
+        plate.position.set(0, -0.2 + (i * 0.2), 0.2);
+        group.add(plate);
+      }
     } else {
-      // Add angular detail on upper leg
+      // Add angular details on upper leg
       const detailGeometry = new BoxGeometry(0.2, 0.1, 0.1);
-      const detail = new Mesh(detailGeometry, materials.secondary);
-      detail.position.set(0, -0.2, 0.2);
-      detail.rotation.z = Math.PI / 4;
-      group.add(detail);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(detailGeometry, materials.secondary);
+        detail.position.set(0, -0.2 + (i * 0.2), 0.2);
+        detail.rotation.z = Math.PI / 4;
+        group.add(detail);
+      }
+
+      // Add energy spikes
+      const spikeGeometry = new ConeGeometry(0.05, 0.15, 8);
+      for (let i = 0; i < 2; i++) {
+        const spike = new Mesh(spikeGeometry, materials.glow);
+        spike.position.set(0, -0.2 + (i * 0.2), 0.2);
+        spike.rotation.z = Math.PI / 4;
+        group.add(spike);
+      }
+
+      // Add armor plates
+      const plateGeometry = new BoxGeometry(0.15, 0.1, 0.1);
+      for (let i = 0; i < 3; i++) {
+        const plate = new Mesh(plateGeometry, materials.secondary);
+        plate.position.set(0, -0.2 + (i * 0.2), 0.2);
+        plate.rotation.z = Math.PI / 4;
+        group.add(plate);
+      }
+    }
+
+    // Add calf details
+    if (options.style.faction === 'autobot') {
+      // Add circular details
+      const detailGeometry = new SphereGeometry(0.08, 8, 8);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(detailGeometry, materials.secondary);
+        detail.position.set(0, -1.3 + (i * 0.2), 0);
+        group.add(detail);
+      }
+    } else {
+      // Add angular details
+      const detailGeometry = new BoxGeometry(0.15, 0.05, 0.05);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(detailGeometry, materials.secondary);
+        detail.position.set(0, -1.3 + (i * 0.2), 0);
+        detail.rotation.z = Math.PI / 4;
+        group.add(detail);
+      }
     }
 
     return {
@@ -649,6 +871,12 @@ export class PartGenerator {
       rightGuard.position.set(0.4, 0, 0.3);
       group.add(leftGuard);
       group.add(rightGuard);
+
+      // Add forehead detail
+      const foreheadGeometry = new BoxGeometry(0.3, 0.1, 0.1);
+      const forehead = new Mesh(foreheadGeometry, materials.secondary);
+      forehead.position.set(0, 0.4, 0.3);
+      group.add(forehead);
     } else {
       // Add advanced angular details
       const detailGeometry = new BoxGeometry(0.4, 0.1, 0.1);
@@ -660,11 +888,11 @@ export class PartGenerator {
       group.add(rightDetail);
 
       // Add energy spikes
-      const spikeGeometry = new ConeGeometry(0.05, 0.2, 8);
+      const spikeGeometry = new ConeGeometry(0.05, 0.15, 8);
       const spikes = [];
-      for (let i = 0; i < 4; i++) {
+      for (let i = 0; i < 3; i++) {
         const spike = new Mesh(spikeGeometry, materials.glow);
-        spike.position.set(-0.3 + (i * 0.2), 0.3, 0.3);
+        spike.position.set(-0.2 + (i * 0.2), 0.4, 0.3);
         spike.rotation.z = Math.PI / 4;
         spikes.push(spike);
         group.add(spike);
@@ -1152,6 +1380,14 @@ export class PartGenerator {
       const line = new Mesh(lineGeometry, materials.glow);
       line.position.set(0, 0.1, 0);
       group.add(line);
+
+      // Add armor plates
+      const plateGeometry = new BoxGeometry(0.15, 0.1, 0.1);
+      for (let i = 0; i < 3; i++) {
+        const plate = new Mesh(plateGeometry, materials.secondary);
+        plate.position.set(0, -0.2 + (i * 0.2), 0);
+        group.add(plate);
+      }
     } else {
       const shoulderGeometry = new ConeGeometry(0.2, 0.3, 8);
       const shoulder = new Mesh(shoulderGeometry, materials.secondary);
@@ -1165,6 +1401,15 @@ export class PartGenerator {
       spike.position.set(0, 0.1, 0);
       spike.rotation.z = Math.PI / 2;
       group.add(spike);
+
+      // Add armor plates
+      const plateGeometry = new BoxGeometry(0.15, 0.1, 0.1);
+      for (let i = 0; i < 3; i++) {
+        const plate = new Mesh(plateGeometry, materials.secondary);
+        plate.position.set(0, -0.2 + (i * 0.2), 0);
+        plate.rotation.z = Math.PI / 4;
+        group.add(plate);
+      }
     }
 
     // Create lower arm with joint
@@ -1187,6 +1432,26 @@ export class PartGenerator {
     ring.position.y = -0.8;
     ring.rotation.x = Math.PI / 2;
     group.add(ring);
+
+    // Add forearm details
+    if (options.style.faction === 'autobot') {
+      // Add circular details
+      const detailGeometry = new SphereGeometry(0.08, 8, 8);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(detailGeometry, materials.secondary);
+        detail.position.set(0, -1.2 + (i * 0.2), 0);
+        group.add(detail);
+      }
+    } else {
+      // Add angular details
+      const detailGeometry = new BoxGeometry(0.15, 0.05, 0.05);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(detailGeometry, materials.secondary);
+        detail.position.set(0, -1.2 + (i * 0.2), 0);
+        detail.rotation.z = Math.PI / 4;
+        group.add(detail);
+      }
+    }
 
     // Add weapon mount point
     const weaponMount = new Group();
@@ -1301,6 +1566,26 @@ export class PartGenerator {
       ring.position.y = -0.8;
       ring.rotation.x = Math.PI / 2;
       group.add(ring);
+    }
+
+    // Add forearm details
+    if (options.style.faction === 'autobot') {
+      // Add circular details
+      const detailGeometry = new SphereGeometry(0.08, 8, 8);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(detailGeometry, materials.secondary);
+        detail.position.set(0, -1.2 + (i * 0.2), 0);
+        group.add(detail);
+      }
+    } else {
+      // Add angular details
+      const detailGeometry = new BoxGeometry(0.15, 0.05, 0.05);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(detailGeometry, materials.secondary);
+        detail.position.set(0, -1.2 + (i * 0.2), 0);
+        detail.rotation.z = Math.PI / 4;
+        group.add(detail);
+      }
     }
 
     // Add weapon mount point
