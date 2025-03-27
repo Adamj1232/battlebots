@@ -172,14 +172,7 @@ export class PartGenerator {
       mesh: group,
       materials: Object.values(materials),
       category: 'head',
-      attachmentPoints: {
-        torso: {
-          position: new Vector3(0, -0.5, 0),
-          rotation: new Vector3(0, 0, 0),
-          scale: new Vector3(1, 1, 1),
-          socketId: 'head_to_torso'
-        }
-      },
+      attachmentPoints: {},  // Head doesn't need attachment points, it attaches to torso
       updateColors: (primary: Color, secondary: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
@@ -199,13 +192,15 @@ export class PartGenerator {
       return new SphereGeometry(0.5, 16, 16);
     } else {
       // Angular shape for Decepticons
-      return new BoxGeometry(1, 1, 1);
+      return new BoxGeometry(0.8, 0.8, 0.8);
     }
   }
 
-  private createEye(material: MeshStandardMaterial) {
-    const eyeGeometry = new SphereGeometry(0.1, 8, 8);
-    return new Mesh(eyeGeometry, material);
+  private createEye(material: MeshStandardMaterial): Mesh {
+    return new Mesh(
+      new SphereGeometry(0.1, 8, 8),
+      material
+    );
   }
 
   private generateBasicTorso(options: PartGenerationOptions): RobotPart {
@@ -213,11 +208,10 @@ export class PartGenerator {
     const materials = this.createMaterials(options);
     
     // Create basic torso shape
-    const torsoGeometry = options.style.faction === 'autobot' 
-      ? new BoxGeometry(1.2, 1.5, 0.8)  // More rectangular for Autobots
-      : new BoxGeometry(1, 2, 0.6);      // Slimmer for Decepticons
-    
-    const torsoMesh = new Mesh(torsoGeometry, materials.primary);
+    const torsoMesh = new Mesh(
+      new BoxGeometry(1.2, 1.5, 0.8),
+      materials.primary
+    );
     group.add(torsoMesh);
 
     return {
@@ -231,28 +225,28 @@ export class PartGenerator {
           position: new Vector3(0, 0.75, 0),
           rotation: new Vector3(0, 0, 0),
           scale: new Vector3(1, 1, 1),
-          socketId: 'torso_to_head'
+          socketId: 'head_to_torso'
         },
         leftArm: {
-          position: new Vector3(-0.7, 0.3, 0),
+          position: new Vector3(-0.7, 0.4, 0),
           rotation: new Vector3(0, 0, 0),
           scale: new Vector3(1, 1, 1),
           socketId: 'torso_to_left_arm'
         },
         rightArm: {
-          position: new Vector3(0.7, 0.3, 0),
+          position: new Vector3(0.7, 0.4, 0),
           rotation: new Vector3(0, 0, 0),
           scale: new Vector3(1, 1, 1),
           socketId: 'torso_to_right_arm'
         },
         leftLeg: {
-          position: new Vector3(-0.3, -0.75, 0),
+          position: new Vector3(-0.4, -0.75, 0),
           rotation: new Vector3(0, 0, 0),
           scale: new Vector3(1, 1, 1),
           socketId: 'torso_to_left_leg'
         },
         rightLeg: {
-          position: new Vector3(0.3, -0.75, 0),
+          position: new Vector3(0.4, -0.75, 0),
           rotation: new Vector3(0, 0, 0),
           scale: new Vector3(1, 1, 1),
           socketId: 'torso_to_right_leg'
@@ -275,15 +269,26 @@ export class PartGenerator {
     const group = new Group();
     const materials = this.createMaterials(options);
     
-    // Create basic arm shape
-    const upperArmGeometry = new BoxGeometry(0.3, 0.8, 0.3);
-    const upperArm = new Mesh(upperArmGeometry, materials.primary);
+    // Create upper arm
+    const upperArm = new Mesh(
+      new BoxGeometry(0.3, 0.8, 0.3),
+      materials.primary
+    );
+    upperArm.position.y = -0.4;
     group.add(upperArm);
 
-    const forearmGeometry = new BoxGeometry(0.25, 0.6, 0.25);
-    const forearm = new Mesh(forearmGeometry, materials.secondary);
-    forearm.position.y = -0.7;
-    group.add(forearm);
+    // Create lower arm
+    const lowerArm = new Mesh(
+      new BoxGeometry(0.25, 0.6, 0.25),
+      materials.secondary
+    );
+    lowerArm.position.y = -1.1;
+    group.add(lowerArm);
+
+    // Add weapon mount point if it's an arm
+    const weaponMount = new Group();
+    weaponMount.position.set(0, -1.4, 0);
+    group.add(weaponMount);
 
     return {
       id: options.style.id,
@@ -293,7 +298,7 @@ export class PartGenerator {
       category: 'arm',
       attachmentPoints: {
         weapon: {
-          position: new Vector3(0, -1, 0),
+          position: new Vector3(0, -1.4, 0),
           rotation: new Vector3(0, 0, 0),
           scale: new Vector3(1, 1, 1),
           socketId: 'arm_to_weapon'
@@ -316,19 +321,28 @@ export class PartGenerator {
     const group = new Group();
     const materials = this.createMaterials(options);
     
-    // Create basic leg shape
-    const upperLegGeometry = new BoxGeometry(0.4, 0.9, 0.4);
-    const upperLeg = new Mesh(upperLegGeometry, materials.primary);
+    // Create upper leg
+    const upperLeg = new Mesh(
+      new BoxGeometry(0.35, 0.9, 0.35),
+      materials.primary
+    );
+    upperLeg.position.y = -0.45;
     group.add(upperLeg);
 
-    const lowerLegGeometry = new BoxGeometry(0.35, 0.7, 0.35);
-    const lowerLeg = new Mesh(lowerLegGeometry, materials.secondary);
-    lowerLeg.position.y = -0.8;
+    // Create lower leg
+    const lowerLeg = new Mesh(
+      new BoxGeometry(0.3, 0.7, 0.3),
+      materials.secondary
+    );
+    lowerLeg.position.y = -1.25;
     group.add(lowerLeg);
 
-    const footGeometry = new BoxGeometry(0.5, 0.2, 0.6);
-    const foot = new Mesh(footGeometry, materials.primary);
-    foot.position.y = -1.3;
+    // Create foot
+    const foot = new Mesh(
+      new BoxGeometry(0.4, 0.2, 0.5),
+      materials.primary
+    );
+    foot.position.y = -1.7;
     foot.position.z = 0.1;
     group.add(foot);
 
@@ -338,7 +352,7 @@ export class PartGenerator {
       mesh: group,
       materials: Object.values(materials),
       category: 'leg',
-      attachmentPoints: {},
+      attachmentPoints: {},  // Legs don't need attachment points
       updateColors: (primary: Color, secondary: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;

@@ -125,6 +125,7 @@
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
+  height: calc(100vh - 200px);
 }
 
 /* Preview Section */
@@ -134,13 +135,25 @@
   overflow: hidden;
   background: rgba(15, 17, 35, 0.8);
   border: 1px solid rgba(41, 182, 246, 0.3);
+  height: 100%;
   min-height: 600px;
+  display: flex;
+  flex-direction: column;
 }
 
 .preview-container {
   width: 100%;
   height: 100%;
-  min-height: 600px;
+  flex: 1;
+  position: relative;
+}
+
+.preview-container canvas {
+  width: 100% !important;
+  height: 100% !important;
+  position: absolute;
+  top: 0;
+  left: 0;
 }
 
 /* Controls Section */
@@ -148,6 +161,8 @@
   display: flex;
   flex-direction: column;
   gap: 2rem;
+  height: 100%;
+  overflow-y: auto;
 }
 
 /* Part Selection */
@@ -214,26 +229,17 @@
 }
 
 .color-picker label {
-  font-size: 0.875rem;
-  color: rgba(255, 255, 255, 0.8);
+  font-size: 1rem;
+  color: #fff;
 }
 
 .color-picker input[type="color"] {
   width: 100%;
   height: 40px;
+  padding: 0;
   border: none;
   border-radius: 0.25rem;
-  background: none;
   cursor: pointer;
-}
-
-.color-picker input[type="color"]::-webkit-color-swatch-wrapper {
-  padding: 0;
-}
-
-.color-picker input[type="color"]::-webkit-color-swatch {
-  border: 1px solid rgba(41, 182, 246, 0.3);
-  border-radius: 0.25rem;
 }
 
 /* Button Group */
@@ -242,38 +248,40 @@
   justify-content: space-between;
   gap: 1rem;
   margin-top: auto;
+  padding-top: 2rem;
 }
 
 .back-button,
 .complete-button {
-  background: rgba(41, 182, 246, 0.1);
-  border: 1px solid rgba(41, 182, 246, 0.3);
-  border-radius: 0.25rem;
-  color: #fff;
-  padding: 0.75rem 1.5rem;
+  padding: 1rem 2rem;
   font-family: 'Orbitron', sans-serif;
   font-size: 1rem;
   text-transform: uppercase;
   letter-spacing: 1px;
+  border-radius: 0.25rem;
   cursor: pointer;
   transition: all 0.2s ease;
-  flex: 1;
 }
 
-.back-button:hover,
-.complete-button:hover {
-  background: rgba(41, 182, 246, 0.2);
-  border-color: rgba(41, 182, 246, 0.5);
+.back-button {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+
+.back-button:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.5);
 }
 
 .complete-button {
   background: #29b6f6;
-  border-color: #29b6f6;
+  border: none;
+  color: #fff;
 }
 
 .complete-button:hover {
   background: #0288d1;
-  border-color: #0288d1;
 }
 
 /* Scrollbar Styling */

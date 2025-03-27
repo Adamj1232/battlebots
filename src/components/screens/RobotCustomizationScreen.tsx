@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useDispatch } from 'react-redux';
 import { PrimitiveRobot } from '../../game/robots/PrimitiveRobot';
 import { PartGenerator } from '../../game/robots/PartGenerator';
@@ -23,7 +23,7 @@ const partCategories: UIPartCategory[] = ['head', 'torso', 'arms', 'legs'];
 
 export const RobotCustomizationScreen: React.FC = () => {
   const dispatch = useDispatch();
-  const [scene] = useState(() => new Scene());
+  const sceneRef = useRef<Scene>(new Scene());
   const [partGenerator] = useState(() => new PartGenerator());
   const [selectedFaction] = useState<RobotFaction>('autobot');
   const [robot, setRobot] = useState<PrimitiveRobot | null>(null);
@@ -49,7 +49,7 @@ export const RobotCustomizationScreen: React.FC = () => {
 
   // Initialize robot
   useEffect(() => {
-    const newRobot = new PrimitiveRobot(scene, partGenerator);
+    const newRobot = new PrimitiveRobot(sceneRef.current, partGenerator);
     newRobot.assembleParts(config);
     
     // Center the robot
@@ -64,7 +64,7 @@ export const RobotCustomizationScreen: React.FC = () => {
     return () => {
       newRobot.dispose();
     };
-  }, [scene, partGenerator]);
+  }, []);
 
   // Handle updates to config
   useEffect(() => {
@@ -115,7 +115,6 @@ export const RobotCustomizationScreen: React.FC = () => {
   };
 
   const handleComplete = () => {
-    // Save the robot configuration here if needed
     dispatch(setCurrentScreen('battle'));
   };
 
@@ -125,7 +124,7 @@ export const RobotCustomizationScreen: React.FC = () => {
       <div className="customization-layout">
         <div className="preview-section">
           <div className="preview-container">
-            <RobotPreview scene={scene} />
+            <RobotPreview scene={sceneRef.current} />
           </div>
         </div>
         <div className="controls-section">
@@ -138,7 +137,7 @@ export const RobotCustomizationScreen: React.FC = () => {
                   className={`part-button ${isPartSelected(category) ? 'selected' : ''}`}
                   onClick={() => handlePartSelect(category)}
                 >
-                  {category}
+                  {category.toUpperCase()}
                 </button>
               ))}
             </div>

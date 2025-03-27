@@ -1,6 +1,5 @@
 import { Color, Mesh, Object3D, Raycaster, Vector3 } from 'three';
 import { PrimitiveRobot } from '../../robots/PrimitiveRobot';
-import { PartCategory } from '../../robots/types';
 import { CombatTarget, DamageInfo, HitInfo, TargetType } from '../types';
 
 export class PrimitiveCombatAdapter {
