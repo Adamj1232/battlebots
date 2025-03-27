@@ -193,6 +193,10 @@
   letter-spacing: 1px;
   cursor: pointer;
   transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  align-items: center;
 }
 
 .part-button:hover {
@@ -204,6 +208,25 @@
   background: rgba(41, 182, 246, 0.3);
   border-color: #29b6f6;
   box-shadow: 0 0 10px rgba(41, 182, 246, 0.3);
+}
+
+.part-button-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.part-category {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.part-style {
+  font-size: 0.8rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-transform: uppercase;
+  letter-spacing: 2px;
 }
 
 /* Color Selection */

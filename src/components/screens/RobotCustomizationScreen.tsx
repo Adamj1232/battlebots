@@ -21,12 +21,29 @@ const categoryMap: Record<UIPartCategory, string> = {
 
 const partCategories: UIPartCategory[] = ['head', 'torso', 'arms', 'legs'];
 
+// Add new type for part styles
+type PartStyle = 'basic' | 'advanced' | 'elite';
+
+// Add part style information
+const partStyles: Record<UIPartCategory, PartStyle[]> = {
+  head: ['basic', 'advanced', 'elite'],
+  torso: ['basic', 'advanced', 'elite'],
+  arms: ['basic', 'advanced', 'elite'],
+  legs: ['basic', 'advanced', 'elite']
+};
+
 export const RobotCustomizationScreen: React.FC = () => {
   const dispatch = useDispatch();
   const sceneRef = useRef<Scene>(new Scene());
   const [partGenerator] = useState(() => new PartGenerator());
   const [selectedFaction] = useState<RobotFaction>('autobot');
   const [robot, setRobot] = useState<PrimitiveRobot | null>(null);
+  const [currentStyles, setCurrentStyles] = useState<Record<UIPartCategory, PartStyle>>({
+    head: 'basic',
+    torso: 'basic',
+    arms: 'basic',
+    legs: 'basic'
+  });
   const [config, setConfig] = useState({
     faction: selectedFaction,
     parts: {
@@ -76,17 +93,39 @@ export const RobotCustomizationScreen: React.FC = () => {
 
   const handlePartSelect = (category: UIPartCategory) => {
     const actualCategory = categoryMap[category];
-    const partId = `${selectedFaction}-basic-${actualCategory}`;
+    const currentStyle = currentStyles[category];
+    const styleIndex = partStyles[category].indexOf(currentStyle);
+    const nextStyle = partStyles[category][(styleIndex + 1) % partStyles[category].length];
     
-    setConfig(prev => ({
+    setCurrentStyles(prev => ({
       ...prev,
-      parts: {
-        ...prev.parts,
-        [category === 'arms' ? 'leftArm' : category]: partId,
-        ...(category === 'arms' ? { rightArm: partId } : {}),
-        ...(category === 'legs' ? { rightLeg: partId } : {})
-      }
+      [category]: nextStyle
     }));
+
+    const partId = `${selectedFaction}-${nextStyle}-${actualCategory}`;
+    
+    setConfig(prev => {
+      const newConfig = { ...prev };
+      
+      switch (category) {
+        case 'head':
+          newConfig.parts.head = partId;
+          break;
+        case 'torso':
+          newConfig.parts.torso = partId;
+          break;
+        case 'arms':
+          newConfig.parts.leftArm = partId;
+          newConfig.parts.rightArm = partId;
+          break;
+        case 'legs':
+          newConfig.parts.leftLeg = partId;
+          newConfig.parts.rightLeg = partId;
+          break;
+      }
+      
+      return newConfig;
+    });
   };
 
   const handleColorChange = (type: 'primary' | 'secondary', color: string) => {
@@ -100,7 +139,7 @@ export const RobotCustomizationScreen: React.FC = () => {
   };
 
   const isPartSelected = (category: UIPartCategory) => {
-    const partId = `${selectedFaction}-basic-${categoryMap[category]}`;
+    const partId = `${selectedFaction}-${currentStyles[category]}-${categoryMap[category]}`;
     if (category === 'arms') {
       return config.parts.leftArm === partId && config.parts.rightArm === partId;
     }
@@ -137,7 +176,10 @@ export const RobotCustomizationScreen: React.FC = () => {
                   className={`part-button ${isPartSelected(category) ? 'selected' : ''}`}
                   onClick={() => handlePartSelect(category)}
                 >
-                  {category.toUpperCase()}
+                  <div className="part-button-content">
+                    <div className="part-category">{category.toUpperCase()}</div>
+                    <div className="part-style">{currentStyles[category].toUpperCase()}</div>
+                  </div>
                 </button>
               ))}
             </div>
