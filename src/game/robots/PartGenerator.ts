@@ -162,12 +162,37 @@ export class PartGenerator {
         metalness: options.metalness || 0.7,
         roughness: options.roughness || 0.3,
       }),
+      accent: new MeshStandardMaterial({
+        color: options.accentColor || 0xffffff,
+        metalness: 0.8,
+        roughness: 0.2,
+      }),
       glow: new MeshStandardMaterial({
         color: options.style.faction === 'autobot' ? 0x00ffff : 0xff0000,
         emissive: options.style.faction === 'autobot' ? 0x00ffff : 0xff0000,
         emissiveIntensity: 0.5,
         metalness: 0,
         roughness: 0.5,
+      }),
+      energy: new MeshStandardMaterial({
+        color: options.style.faction === 'autobot' ? 0x00ffff : 0xff0000,
+        emissive: options.style.faction === 'autobot' ? 0x00ffff : 0xff0000,
+        emissiveIntensity: 0.8,
+        metalness: 0.2,
+        roughness: 0.3,
+        transparent: true,
+        opacity: 0.8,
+      }),
+      chrome: new MeshStandardMaterial({
+        color: 0xffffff,
+        metalness: 1,
+        roughness: 0,
+        envMapIntensity: 1,
+      }),
+      matte: new MeshStandardMaterial({
+        color: options.primaryColor,
+        metalness: 0.2,
+        roughness: 0.8,
       })
     };
   }
@@ -236,7 +261,7 @@ export class PartGenerator {
       crest.position.set(0, 0.3, 0.3);
       group.add(crest);
 
-      // Add cheek guards
+      // Add cheek guards with chrome accents
       const guardGeometry = new BoxGeometry(0.2, 0.15, 0.1);
       const leftGuard = new Mesh(guardGeometry, materials.secondary);
       const rightGuard = new Mesh(guardGeometry, materials.secondary);
@@ -245,20 +270,43 @@ export class PartGenerator {
       group.add(leftGuard);
       group.add(rightGuard);
 
-      // Add forehead detail
+      // Add chrome accents to guards
+      const accentGeometry = new BoxGeometry(0.15, 0.05, 0.05);
+      const leftAccent = new Mesh(accentGeometry, materials.chrome);
+      const rightAccent = new Mesh(accentGeometry, materials.chrome);
+      leftAccent.position.set(-0.4, 0.1, 0.3);
+      rightAccent.position.set(0.4, 0.1, 0.3);
+      group.add(leftAccent);
+      group.add(rightAccent);
+
+      // Add forehead detail with energy matrix
       const foreheadGeometry = new BoxGeometry(0.3, 0.1, 0.1);
       const forehead = new Mesh(foreheadGeometry, materials.secondary);
       forehead.position.set(0, 0.4, 0.3);
       group.add(forehead);
 
-      // Add energy lines
-      const lineGeometry = new BoxGeometry(0.4, 0.05, 0.05);
-      const line1 = new Mesh(lineGeometry, materials.glow);
-      const line2 = new Mesh(lineGeometry, materials.glow);
-      line1.position.set(-0.2, 0.35, 0.3);
-      line2.position.set(0.2, 0.35, 0.3);
-      group.add(line1);
-      group.add(line2);
+      // Add energy matrix lines
+      for (let i = 0; i < 3; i++) {
+        const lineGeometry = new BoxGeometry(0.4, 0.05, 0.05);
+        const line = new Mesh(lineGeometry, materials.energy);
+        line.position.set(0, 0.35 + (i * 0.05), 0.3);
+        group.add(line);
+      }
+
+      // Add antenna with glow effect
+      const antennaGeometry = new ConeGeometry(0.05, 0.2, 8);
+      const antenna = new Mesh(antennaGeometry, materials.glow);
+      antenna.position.set(0, 0.5, 0.3);
+      group.add(antenna);
+
+      // Add circular details around eyes
+      const eyeRingGeometry = new TorusGeometry(0.15, 0.02, 8, 16);
+      const leftEyeRing = new Mesh(eyeRingGeometry, materials.accent);
+      const rightEyeRing = new Mesh(eyeRingGeometry, materials.accent);
+      leftEyeRing.position.set(-0.2, 0.1, 0.4);
+      rightEyeRing.position.set(0.2, 0.1, 0.4);
+      group.add(leftEyeRing);
+      group.add(rightEyeRing);
     } else {
       // Add angular details with energy spikes
       const detailGeometry = new BoxGeometry(0.4, 0.1, 0.1);
@@ -269,7 +317,7 @@ export class PartGenerator {
       group.add(leftDetail);
       group.add(rightDetail);
 
-      // Add cheek armor
+      // Add cheek armor with chrome accents
       const armorGeometry = new BoxGeometry(0.25, 0.2, 0.1);
       const leftArmor = new Mesh(armorGeometry, materials.secondary);
       const rightArmor = new Mesh(armorGeometry, materials.secondary);
@@ -280,7 +328,18 @@ export class PartGenerator {
       group.add(leftArmor);
       group.add(rightArmor);
 
-      // Add forehead spikes
+      // Add chrome accents to armor
+      const accentGeometry = new BoxGeometry(0.2, 0.05, 0.05);
+      const leftAccent = new Mesh(accentGeometry, materials.chrome);
+      const rightAccent = new Mesh(accentGeometry, materials.chrome);
+      leftAccent.position.set(-0.45, 0.1, 0.3);
+      rightAccent.position.set(0.45, 0.1, 0.3);
+      leftAccent.rotation.z = -Math.PI / 6;
+      rightAccent.rotation.z = Math.PI / 6;
+      group.add(leftAccent);
+      group.add(rightAccent);
+
+      // Add forehead spikes with energy effects
       const spikeGeometry = new ConeGeometry(0.05, 0.15, 8);
       const spikes = [];
       for (let i = 0; i < 3; i++) {
@@ -290,6 +349,26 @@ export class PartGenerator {
         spikes.push(spike);
         group.add(spike);
       }
+
+      // Add energy rings around eyes
+      const eyeRingGeometry = new TorusGeometry(0.15, 0.02, 8, 16);
+      const leftEyeRing = new Mesh(eyeRingGeometry, materials.energy);
+      const rightEyeRing = new Mesh(eyeRingGeometry, materials.energy);
+      leftEyeRing.position.set(-0.25, 0, 0.4);
+      rightEyeRing.position.set(0.25, 0, 0.4);
+      group.add(leftEyeRing);
+      group.add(rightEyeRing);
+
+      // Add angular details around eyes
+      const eyeDetailGeometry = new BoxGeometry(0.2, 0.05, 0.05);
+      const leftEyeDetail = new Mesh(eyeDetailGeometry, materials.accent);
+      const rightEyeDetail = new Mesh(eyeDetailGeometry, materials.accent);
+      leftEyeDetail.position.set(-0.25, 0.1, 0.4);
+      rightEyeDetail.position.set(0.25, 0.1, 0.4);
+      leftEyeDetail.rotation.z = Math.PI / 4;
+      rightEyeDetail.rotation.z = -Math.PI / 4;
+      group.add(leftEyeDetail);
+      group.add(rightEyeDetail);
     }
 
     return {
@@ -299,9 +378,12 @@ export class PartGenerator {
       materials: Object.values(materials),
       category: 'head',
       attachmentPoints: {},
-      updateColors: (primary: Color, secondary: Color) => {
+      updateColors: (primary: Color, secondary: Color, accent?: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
+        if (accent) {
+          materials.accent.color = accent;
+        }
       },
       setDamage: (amount: number) => {
         this.applyDamageEffect(materials, amount);
@@ -351,12 +433,12 @@ export class PartGenerator {
       // Add energy matrix lines
       for (let i = 0; i < 3; i++) {
         const lineGeometry = new BoxGeometry(0.3, 0.05, 0.05);
-        const line = new Mesh(lineGeometry, materials.glow);
+        const line = new Mesh(lineGeometry, materials.energy);
         line.position.set(0, 0.3 + (i * 0.1), 0.4);
         group.add(line);
       }
 
-      // Add shoulder guards with energy accents
+      // Add shoulder guards with chrome accents
       const guardGeometry = new BoxGeometry(0.3, 0.4, 0.1);
       const leftGuard = new Mesh(guardGeometry, materials.secondary);
       const rightGuard = new Mesh(guardGeometry, materials.secondary);
@@ -365,19 +447,88 @@ export class PartGenerator {
       group.add(leftGuard);
       group.add(rightGuard);
 
-      // Add chest armor plates
+      // Add chrome accents to guards
+      const accentGeometry = new BoxGeometry(0.2, 0.05, 0.05);
+      const leftAccent = new Mesh(accentGeometry, materials.chrome);
+      const rightAccent = new Mesh(accentGeometry, materials.chrome);
+      leftAccent.position.set(-0.8, 0.7, 0);
+      rightAccent.position.set(0.8, 0.7, 0);
+      group.add(leftAccent);
+      group.add(rightAccent);
+
+      // Add chest armor plates with energy effects
       const plateGeometry = new BoxGeometry(0.2, 0.15, 0.1);
       for (let i = 0; i < 3; i++) {
         const plate = new Mesh(plateGeometry, materials.secondary);
         plate.position.set(-0.3 + (i * 0.3), 0.2, 0.4);
         group.add(plate);
+
+        // Add energy effect to plates
+        const energyGeometry = new BoxGeometry(0.15, 0.05, 0.05);
+        const energy = new Mesh(energyGeometry, materials.energy);
+        energy.position.set(-0.3 + (i * 0.3), 0.2, 0.4);
+        group.add(energy);
       }
 
-      // Add waist details
+      // Add waist details with chrome accents
       const waistGeometry = new BoxGeometry(0.8, 0.2, 0.1);
       const waist = new Mesh(waistGeometry, materials.secondary);
       waist.position.set(0, -0.6, 0.4);
       group.add(waist);
+
+      // Add chrome accents to waist
+      const waistAccentGeometry = new BoxGeometry(0.7, 0.05, 0.05);
+      const waistAccent = new Mesh(waistAccentGeometry, materials.chrome);
+      waistAccent.position.set(0, -0.6, 0.4);
+      group.add(waistAccent);
+
+      // Add circular details on sides
+      const sideDetailGeometry = new SphereGeometry(0.1, 8, 8);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(sideDetailGeometry, materials.accent);
+        detail.position.set(-0.5 + (i * 1), 0, 0.4);
+        group.add(detail);
+      }
+
+      // Add new colorable sections
+      // Add side panels
+      const sidePanelGeometry = new BoxGeometry(0.3, 0.8, 0.1);
+      const leftPanel = new Mesh(sidePanelGeometry, materials.secondary);
+      const rightPanel = new Mesh(sidePanelGeometry, materials.secondary);
+      leftPanel.position.set(-0.7, 0, 0.4);
+      rightPanel.position.set(0.7, 0, 0.4);
+      group.add(leftPanel);
+      group.add(rightPanel);
+
+      // Add back panels
+      const backPanelGeometry = new BoxGeometry(0.8, 0.4, 0.1);
+      const backPanel = new Mesh(backPanelGeometry, materials.secondary);
+      backPanel.position.set(0, 0.2, -0.4);
+      group.add(backPanel);
+
+      // Add energy lines to back
+      const backLineGeometry = new BoxGeometry(0.6, 0.05, 0.05);
+      for (let i = 0; i < 3; i++) {
+        const line = new Mesh(backLineGeometry, materials.energy);
+        line.position.set(0, 0.2 + (i * 0.15), -0.4);
+        group.add(line);
+      }
+
+      // Add shoulder details
+      const shoulderDetailGeometry = new BoxGeometry(0.2, 0.15, 0.1);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(shoulderDetailGeometry, materials.secondary);
+        detail.position.set(-0.8 + (i * 1.6), 0.7, 0);
+        group.add(detail);
+      }
+
+      // Add chest details
+      const chestDetailGeometry = new BoxGeometry(0.15, 0.1, 0.1);
+      for (let i = 0; i < 4; i++) {
+        const detail = new Mesh(chestDetailGeometry, materials.accent);
+        detail.position.set(-0.4 + (i * 0.27), 0.4, 0.4);
+        group.add(detail);
+      }
     } else {
       // Add angular chest details with energy lines
       const detailGeometry = new BoxGeometry(0.4, 0.3, 0.1);
@@ -387,14 +538,14 @@ export class PartGenerator {
 
       // Add energy lines
       const lineGeometry = new BoxGeometry(0.3, 0.05, 0.05);
-      const leftLine = new Mesh(lineGeometry, materials.glow);
-      const rightLine = new Mesh(lineGeometry, materials.glow);
+      const leftLine = new Mesh(lineGeometry, materials.energy);
+      const rightLine = new Mesh(lineGeometry, materials.energy);
       leftLine.position.set(-0.2, 0.3, 0.4);
       rightLine.position.set(0.2, 0.3, 0.4);
       group.add(leftLine);
       group.add(rightLine);
 
-      // Add shoulder spikes
+      // Add shoulder spikes with chrome accents
       const spikeGeometry = new ConeGeometry(0.1, 0.3, 8);
       const leftSpike = new Mesh(spikeGeometry, materials.secondary);
       const rightSpike = new Mesh(spikeGeometry, materials.secondary);
@@ -405,21 +556,101 @@ export class PartGenerator {
       group.add(leftSpike);
       group.add(rightSpike);
 
-      // Add chest armor plates
+      // Add chrome accents to spikes
+      const accentGeometry = new BoxGeometry(0.2, 0.05, 0.05);
+      const leftAccent = new Mesh(accentGeometry, materials.chrome);
+      const rightAccent = new Mesh(accentGeometry, materials.chrome);
+      leftAccent.position.set(-0.8, 0.7, 0);
+      rightAccent.position.set(0.8, 0.7, 0);
+      leftAccent.rotation.z = Math.PI / 4;
+      rightAccent.rotation.z = -Math.PI / 4;
+      group.add(leftAccent);
+      group.add(rightAccent);
+
+      // Add chest armor plates with energy effects
       const plateGeometry = new BoxGeometry(0.2, 0.15, 0.1);
       for (let i = 0; i < 3; i++) {
         const plate = new Mesh(plateGeometry, materials.secondary);
         plate.position.set(-0.3 + (i * 0.3), 0.2, 0.4);
         plate.rotation.z = Math.PI / 4;
         group.add(plate);
+
+        // Add energy effect to plates
+        const energyGeometry = new BoxGeometry(0.15, 0.05, 0.05);
+        const energy = new Mesh(energyGeometry, materials.energy);
+        energy.position.set(-0.3 + (i * 0.3), 0.2, 0.4);
+        energy.rotation.z = Math.PI / 4;
+        group.add(energy);
       }
 
-      // Add waist details
+      // Add waist details with chrome accents
       const waistGeometry = new BoxGeometry(0.8, 0.2, 0.1);
       const waist = new Mesh(waistGeometry, materials.secondary);
       waist.position.set(0, -0.6, 0.4);
       waist.rotation.z = Math.PI / 4;
       group.add(waist);
+
+      // Add chrome accents to waist
+      const waistAccentGeometry = new BoxGeometry(0.7, 0.05, 0.05);
+      const waistAccent = new Mesh(waistAccentGeometry, materials.chrome);
+      waistAccent.position.set(0, -0.6, 0.4);
+      waistAccent.rotation.z = Math.PI / 4;
+      group.add(waistAccent);
+
+      // Add angular details on sides
+      const sideDetailGeometry = new BoxGeometry(0.2, 0.1, 0.1);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(sideDetailGeometry, materials.accent);
+        detail.position.set(-0.5 + (i * 1), 0, 0.4);
+        detail.rotation.z = Math.PI / 4;
+        group.add(detail);
+      }
+
+      // Add new colorable sections
+      // Add side panels
+      const sidePanelGeometry = new BoxGeometry(0.3, 0.8, 0.1);
+      const leftPanel = new Mesh(sidePanelGeometry, materials.secondary);
+      const rightPanel = new Mesh(sidePanelGeometry, materials.secondary);
+      leftPanel.position.set(-0.7, 0, 0.4);
+      rightPanel.position.set(0.7, 0, 0.4);
+      leftPanel.rotation.z = Math.PI / 6;
+      rightPanel.rotation.z = -Math.PI / 6;
+      group.add(leftPanel);
+      group.add(rightPanel);
+
+      // Add back panels
+      const backPanelGeometry = new BoxGeometry(0.8, 0.4, 0.1);
+      const backPanel = new Mesh(backPanelGeometry, materials.secondary);
+      backPanel.position.set(0, 0.2, -0.4);
+      backPanel.rotation.z = Math.PI / 4;
+      group.add(backPanel);
+
+      // Add energy lines to back
+      const backLineGeometry = new BoxGeometry(0.6, 0.05, 0.05);
+      for (let i = 0; i < 3; i++) {
+        const line = new Mesh(backLineGeometry, materials.energy);
+        line.position.set(0, 0.2 + (i * 0.15), -0.4);
+        line.rotation.z = Math.PI / 4;
+        group.add(line);
+      }
+
+      // Add shoulder details
+      const shoulderDetailGeometry = new BoxGeometry(0.2, 0.15, 0.1);
+      for (let i = 0; i < 2; i++) {
+        const detail = new Mesh(shoulderDetailGeometry, materials.secondary);
+        detail.position.set(-0.8 + (i * 1.6), 0.7, 0);
+        detail.rotation.z = Math.PI / 4;
+        group.add(detail);
+      }
+
+      // Add chest details
+      const chestDetailGeometry = new BoxGeometry(0.15, 0.1, 0.1);
+      for (let i = 0; i < 4; i++) {
+        const detail = new Mesh(chestDetailGeometry, materials.accent);
+        detail.position.set(-0.4 + (i * 0.27), 0.4, 0.4);
+        detail.rotation.z = Math.PI / 4;
+        group.add(detail);
+      }
     }
 
     return {
@@ -460,9 +691,12 @@ export class PartGenerator {
           socketId: 'torso_to_right_leg'
         }
       },
-      updateColors: (primary: Color, secondary: Color) => {
+      updateColors: (primary: Color, secondary: Color, accent?: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
+        if (accent) {
+          materials.accent.color = accent;
+        }
       },
       setDamage: (amount: number) => {
         this.applyDamageEffect(materials, amount);
@@ -589,9 +823,12 @@ export class PartGenerator {
           socketId: 'arm_to_weapon'
         }
       },
-      updateColors: (primary: Color, secondary: Color) => {
+      updateColors: (primary: Color, secondary: Color, accent?: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
+        if (accent) {
+          materials.accent.color = accent;
+        }
       },
       setDamage: (amount: number) => {
         this.applyDamageEffect(materials, amount);
@@ -742,9 +979,12 @@ export class PartGenerator {
       materials: Object.values(materials),
       category: 'leg',
       attachmentPoints: {},
-      updateColors: (primary: Color, secondary: Color) => {
+      updateColors: (primary: Color, secondary: Color, accent?: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
+        if (accent) {
+          materials.accent.color = accent;
+        }
       },
       setDamage: (amount: number) => {
         this.applyDamageEffect(materials, amount);
@@ -805,9 +1045,12 @@ export class PartGenerator {
       materials: Object.values(materials),
       category: 'weapon',
       attachmentPoints: {},
-      updateColors: (primary: Color, secondary: Color) => {
+      updateColors: (primary: Color, secondary: Color, accent?: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
+        if (accent) {
+          materials.accent.color = accent;
+        }
       },
       setDamage: (amount: number) => {
         this.applyDamageEffect(materials, amount);
@@ -917,9 +1160,12 @@ export class PartGenerator {
       materials: Object.values(materials),
       category: 'head',
       attachmentPoints: {},
-      updateColors: (primary: Color, secondary: Color) => {
+      updateColors: (primary: Color, secondary: Color, accent?: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
+        if (accent) {
+          materials.accent.color = accent;
+        }
       },
       setDamage: (amount: number) => {
         this.applyDamageEffect(materials, amount);
@@ -1057,9 +1303,12 @@ export class PartGenerator {
       materials: Object.values(materials),
       category: 'head',
       attachmentPoints: {},
-      updateColors: (primary: Color, secondary: Color) => {
+      updateColors: (primary: Color, secondary: Color, accent?: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
+        if (accent) {
+          materials.accent.color = accent;
+        }
       },
       setDamage: (amount: number) => {
         this.applyDamageEffect(materials, amount);
@@ -1191,9 +1440,12 @@ export class PartGenerator {
           socketId: 'torso_to_right_leg'
         }
       },
-      updateColors: (primary: Color, secondary: Color) => {
+      updateColors: (primary: Color, secondary: Color, accent?: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
+        if (accent) {
+          materials.accent.color = accent;
+        }
       },
       setDamage: (amount: number) => {
         this.applyDamageEffect(materials, amount);
@@ -1343,9 +1595,12 @@ export class PartGenerator {
           socketId: 'torso_to_right_leg'
         }
       },
-      updateColors: (primary: Color, secondary: Color) => {
+      updateColors: (primary: Color, secondary: Color, accent?: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
+        if (accent) {
+          materials.accent.color = accent;
+        }
       },
       setDamage: (amount: number) => {
         this.applyDamageEffect(materials, amount);
@@ -1472,9 +1727,12 @@ export class PartGenerator {
           socketId: 'arm_to_weapon'
         }
       },
-      updateColors: (primary: Color, secondary: Color) => {
+      updateColors: (primary: Color, secondary: Color, accent?: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
+        if (accent) {
+          materials.accent.color = accent;
+        }
       },
       setDamage: (amount: number) => {
         this.applyDamageEffect(materials, amount);
@@ -1607,9 +1865,12 @@ export class PartGenerator {
           socketId: 'arm_to_weapon'
         }
       },
-      updateColors: (primary: Color, secondary: Color) => {
+      updateColors: (primary: Color, secondary: Color, accent?: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
+        if (accent) {
+          materials.accent.color = accent;
+        }
       },
       setDamage: (amount: number) => {
         this.applyDamageEffect(materials, amount);
@@ -1715,9 +1976,12 @@ export class PartGenerator {
       materials: Object.values(materials),
       category: 'leg',
       attachmentPoints: {},
-      updateColors: (primary: Color, secondary: Color) => {
+      updateColors: (primary: Color, secondary: Color, accent?: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
+        if (accent) {
+          materials.accent.color = accent;
+        }
       },
       setDamage: (amount: number) => {
         this.applyDamageEffect(materials, amount);
@@ -1848,9 +2112,12 @@ export class PartGenerator {
       materials: Object.values(materials),
       category: 'leg',
       attachmentPoints: {},
-      updateColors: (primary: Color, secondary: Color) => {
+      updateColors: (primary: Color, secondary: Color, accent?: Color) => {
         materials.primary.color = primary;
         materials.secondary.color = secondary;
+        if (accent) {
+          materials.accent.color = accent;
+        }
       },
       setDamage: (amount: number) => {
         this.applyDamageEffect(materials, amount);

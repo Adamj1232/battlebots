@@ -55,6 +55,7 @@ export class PrimitiveRobot {
         secondaryColor: config.colors.secondary,
         metalness: config.materials.metalness,
         roughness: config.materials.roughness,
+        faction: config.faction,
         style: {
           id: partConfig.id,
           name: partName,
@@ -114,6 +115,7 @@ export class PrimitiveRobot {
       secondaryColor: this.config.colors.secondary,
       metalness: this.config.materials.metalness,
       roughness: this.config.materials.roughness,
+      faction: this.config.faction,
       style: {
         id: newPartId,
         name: partName,

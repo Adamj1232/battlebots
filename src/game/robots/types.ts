@@ -1,4 +1,4 @@
-import { Color, Group, Material, Vector3 } from 'three';
+import { Color, Group, Material, MeshStandardMaterial, Vector3 } from 'three';
 
 export type RobotFaction = 'autobot' | 'decepticon';
 
@@ -12,13 +12,15 @@ export interface PartStyle {
 }
 
 export interface PartGenerationOptions {
+  style: PartStyle;
   primaryColor: Color;
   secondaryColor: Color;
+  accentColor?: Color;
   metalness?: number;
   roughness?: number;
+  faction: RobotFaction;
   scale?: Vector3;
   detailLevel?: number;
-  style: PartStyle;
 }
 
 export interface AttachmentPoint {
@@ -32,10 +34,10 @@ export interface RobotPart {
   id: string;
   style: PartStyle;
   mesh: Group;
-  attachmentPoints: Record<string, AttachmentPoint>;
-  materials: Material[];
+  materials: MeshStandardMaterial[];
   category: PartCategory;
-  updateColors: (primary: Color, secondary: Color) => void;
+  attachmentPoints: Record<string, AttachmentPoint>;
+  updateColors: (primary: Color, secondary: Color, accent?: Color) => void;
   setDamage: (amount: number) => void;
   animate: (animationType: string, progress: number) => void;
 }
